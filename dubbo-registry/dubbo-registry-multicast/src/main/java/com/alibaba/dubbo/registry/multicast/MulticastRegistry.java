@@ -323,7 +323,7 @@ public class MulticastRegistry extends FailbackRegistry {
         }
         try {
             multicastSocket.leaveGroup(multicastAddress);
-            multicastSocket.close();
+                multicastSocket.close();
         } catch (Throwable t) {
             logger.warn(t.getMessage(), t);
         }

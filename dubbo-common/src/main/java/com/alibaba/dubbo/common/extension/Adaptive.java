@@ -27,6 +27,7 @@ import java.lang.annotation.Target;
 /**
  * Provide helpful information for {@link ExtensionLoader} to inject dependency extension instance.
  *
+ * 为{@link ExtensionLoader}提供有用的信息以注入依赖项扩展实例。
  * @see ExtensionLoader
  * @see URL
  */
@@ -35,24 +36,20 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface Adaptive {
     /**
-     * Decide which target extension to be injected. The name of the target extension is decided by the parameter passed
-     * in the URL, and the parameter names are given by this method.
+     * 确定要注入的目标扩展目标扩展名由URL中传递的参数决定，参数名称由此方法指定。
      * <p>
-     * If the specified parameters are not found from {@link URL}, then the default extension will be used for
-     * dependency injection (specified in its interface's {@link SPI}).
+     * 如果未从{@link URL}中找到指定的参数，则将使用默认扩展名进行依赖项注入（在其接口的{@link SPI}中指定）。
      * <p>
-     * For examples, given <code>String[] {"key1", "key2"}</code>:
+     * 例如，给定<code> String [] {“ key1”，“ key2”} </ code>：
      * <ol>
-     * <li>find parameter 'key1' in URL, use its value as the extension's name</li>
-     * <li>try 'key2' for extension's name if 'key1' is not found (or its value is empty) in URL</li>
-     * <li>use default extension if 'key2' doesn't appear either</li>
-     * <li>otherwise, throw {@link IllegalStateException}</li>
+     * <li>在网址中找到参数“ key1”，将其值用作扩展名</li>
+     * <li>如果在URL中找不到“ key1”（或其值为空），请尝试使用“ key2”作为扩展名</li>
+     * <li>如果“ key2”也未出现，请使用默认扩展名</li>
+     * <li>否则，抛出{@link IllegalStateException}</li>
      * </ol>
-     * If default extension's name is not give on interface's {@link SPI}, then a name is generated from interface's
-     * class name with the rule: divide classname from capital char into several parts, and separate the parts with
-     * dot '.', for example: for {@code com.alibaba.dubbo.xxx.YyyInvokerWrapper}, its default name is
-     * <code>String[] {"yyy.invoker.wrapper"}</code>. This name will be used to search for parameter from URL.
-     *
+     * 如果没有在接口的{@link SPI}上提供默认扩展名，则使用以下规则从接口的类名生成一个名称：将大写字符的类名分成几部分，
+     * 并用点号“。”分开，例如： 对于{@code com.alibaba.dubbo.xxx.YyyInvokerWrapper},其默认名称为
+     * <code> String [] {“ yyy.invoker.wrapper”} </ code>。 此名称将用于从URL搜索参数。
      * @return parameter key names in URL
      */
     String[] value() default {};

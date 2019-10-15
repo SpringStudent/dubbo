@@ -25,10 +25,9 @@ import com.alibaba.dubbo.rpc.Protocol;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * The shutdown hook thread to do the clean up stuff.
- * This is a singleton in order to ensure there is only one shutdown hook registered.
- * Because {@link ApplicationShutdownHooks} use {@link java.util.IdentityHashMap}
- * to store the shutdown hooks.
+ * 使用shutdown钩子线程来执行清理工作。
+ * 这是一个单例，以确保只注册了一个关闭挂钩。
+ * 因为{@link ApplicationShutdownHooks}使用{@link java.util.IdentityHashMap}存储关闭挂钩。
  */
 public class DubboShutdownHook extends Thread {
 
