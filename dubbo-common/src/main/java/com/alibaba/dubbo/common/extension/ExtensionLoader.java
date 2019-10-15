@@ -78,7 +78,7 @@ public class ExtensionLoader<T> {
 
     // ==============================
     /**
-     * 扩展接口，例如Protocol等
+     * 扩展接口，例如Protocol.class等
      */
     private final Class<?> type;
     /**
@@ -92,7 +92,7 @@ public class ExtensionLoader<T> {
      */
     private final ConcurrentMap<Class<?>, String> cachedNames = new ConcurrentHashMap<Class<?>, String>();
     /**
-     * 缓存的扩展实现类集合
+     * 缓存的扩展实现类集合key为扩展实现类名称(比如"dubbo") value对应的实现类(DubboProtocol)
      */
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<Map<String, Class<?>>>();
     /**
@@ -131,7 +131,8 @@ public class ExtensionLoader<T> {
 
     private ExtensionLoader(Class<?> type) {
         this.type = type;
-        //如果type是ExtensionFactory的话好说了，直接为null,否则就获取
+        //如果type是ExtensionFactory的话好说了，直接为null,否则使用Dubbo自己提供的SPI机制获取
+        //这里返回的永远是AdaptiveExtensionFactory
         objectFactory = (type == ExtensionFactory.class ? null : ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension());
     }
 

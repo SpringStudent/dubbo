@@ -10,10 +10,10 @@ import com.alibaba.dubbo.common.extension.ExtensionLoader;
 public class AdaptvieTest {
 
     public static void main(String[] args) {
-        /*SimpleExt simpleExt = ExtensionLoader.getExtensionLoader(SimpleExt.class).getAdaptiveExtension();
-        System.out.println(simpleExt.simple(URL.valueOf("dubbo://127.0.0.1:9092" + "?key=sec"), "asda"));*/
+        SimpleExt simpleExt = ExtensionLoader.getExtensionLoader(SimpleExt.class).getAdaptiveExtension();
+        System.out.println(simpleExt.simple(URL.valueOf("dubbo://127.0.0.1:9092" + "?key=sec"), " asda"));
 
         SimpleExt simpleExt1 = ExtensionLoader.getExtensionLoader(SimpleExt.class).getDefaultExtension();
-        System.out.println(simpleExt1.simple(URL.valueOf("asd"),"saaaaa"));
+        System.out.println(simpleExt1.simple(URL.valueOf("asd")," saaaaa"));
     }
 }
