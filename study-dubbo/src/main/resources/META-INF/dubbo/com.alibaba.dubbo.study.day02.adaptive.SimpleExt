@@ -1,0 +1,2 @@
+ext=com.alibaba.dubbo.study.day02.adaptive.SimpleExtImpl
+sec=com.alibaba.dubbo.study.day02.adaptive.SecondExtImpl

@@ -9,18 +9,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+
 /**
  * @author 周宁
  * @Date 2019-10-12 13:58
  */
 public class AnnotationConsumer {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ConsumerConfiguration.class);
 
         EchoConsumer echoConsumer = context.getBean(EchoConsumer.class);
 
         System.out.println(echoConsumer.getMessage("干!"));
+        System.in.read();
     }
 
 

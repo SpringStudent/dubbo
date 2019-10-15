@@ -20,6 +20,9 @@ import com.alibaba.dubbo.common.URL;
 
 import java.util.List;
 
+/**
+ * dubbo对zkClient的操作封装的接口
+ */
 public interface ZookeeperClient {
 
     void create(String path, boolean ephemeral);

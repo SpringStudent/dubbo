@@ -37,6 +37,9 @@ import org.apache.zookeeper.WatchedEvent;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 通过组合org.apache.curator.framework.CuratorFramework实现对zookeeper的操作
+ */
 public class CuratorZookeeperClient extends AbstractZookeeperClient<CuratorWatcher> {
 
     private final CuratorFramework client;

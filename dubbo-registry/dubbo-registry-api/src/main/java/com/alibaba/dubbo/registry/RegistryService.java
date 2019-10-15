@@ -29,53 +29,53 @@ import java.util.List;
 public interface RegistryService {
 
     /**
-     * Register data, such as : provider service, consumer address, route rule, override rule and other data.
+     * 注册数据，例如：提供者服务，使用者地址，路由规则，覆盖规则和其他数据。
      * <p>
-     * Registering is required to support the contract:<br>
-     * 1. When the URL sets the check=false parameter. When the registration fails, the exception is not thrown and retried in the background. Otherwise, the exception will be thrown.<br>
-     * 2. When URL sets the dynamic=false parameter, it needs to be stored persistently, otherwise, it should be deleted automatically when the registrant has an abnormal exit.<br>
-     * 3. When the URL sets category=routers, it means classified storage, the default category is providers, and the data can be notified by the classified section. <br>
-     * 4. When the registry is restarted, network jitter, data can not be lost, including automatically deleting data from the broken line.<br>
-     * 5. Allow URLs which have the same URL but different parameters to coexist,they can't cover each other.<br>
+     * 注册需要支持如下规则<br>
+     * 1. URL设置check = false参数时。注册失败，不会抛出异常而会在后台重试。否则将会抛出异常<br>
+     * 2. URL设置dynamic = false参数时，他需要被永久存储，否则当注册着异常退出，他应该被删除<br>
+     * 3. URL设置category=routers，这意味分类存储，默认类型为providers，数据将会被分类部分通知<br>
+     * 4. 当注册中心被重启了，比如网络抖动，数据不会丢失，包括自动从broken line处删除数据<br>
+     * 5. 允许具有相同URL但不同参数的URL共存，它们不能相互覆盖。<br>
      *
-     * @param url  Registration information , is not allowed to be empty, e.g: dubbo://10.20.153.10/com.alibaba.foo.BarService?version=1.0.0&application=kylin
+     * @param url  注册信息，不允许为空， e.g: dubbo://10.20.153.10/com.alibaba.foo.BarService?version=1.0.0&application=kylin
      */
     void register(URL url);
 
-    /**
-     * Unregister
-     * <p>
-     * Unregistering is required to support the contract:<br>
-     * 1. If it is the persistent stored data of dynamic=false, the registration data can not be found, then the IllegalStateException is thrown, otherwise it is ignored.<br>
-     * 2. Unregister according to the full url match.<br>
+    /**取消注册
      *
-     * @param url Registration information , is not allowed to be empty, e.g: dubbo://10.20.153.10/com.alibaba.foo.BarService?version=1.0.0&application=kylin
+     * <p>
+     * 取消注册被要求支持如下规则<br>
+     * 1. 由于设置了dynamic = false存储的属于，当找不到注册信息数据，将会抛出异常，其他情况将会忽略<br>
+     * 2. 根据完整的网址匹配取消注册。<br>
+     *
+     * @param url 注册信息，不允许为空， e.g: dubbo://10.20.153.10/com.alibaba.foo.BarService?version=1.0.0&application=kylin
      */
     void unregister(URL url);
 
     /**
-     * Subscrib to eligible registered data and automatically push when the registered data is changed.
+     * 订阅合适的注册数据，当注册过的数据修改时，自动推送
      * <p>
-     * Subscribing need to support contracts:<br>
-     * 1. When the URL sets the check=false parameter. When the registration fails, the exception is not thrown and retried in the background. <br>
-     * 2. When URL sets category=routers, it only notifies the specified classification data. Multiple classifications are separated by commas, and allows asterisk to match, which indicates that all categorical data are subscribed.<br>
-     * 3. Allow interface, group, version, and classifier as a conditional query, e.g.: interface=com.alibaba.foo.BarService&version=1.0.0<br>
-     * 4. And the query conditions allow the asterisk to be matched, subscribe to all versions of all the packets of all interfaces, e.g. :interface=*&group=*&version=*&classifier=*<br>
-     * 5. When the registry is restarted and network jitter, it is necessary to automatically restore the subscription request.<br>
-     * 6. Allow URLs which have the same URL but different parameters to coexist,they can't cover each other.<br>
-     * 7. The subscription process must be blocked, when the first notice is finished and then returned.<br>
+     * 订阅需要遵循的规则<br>
+     * 1. URL设置check = false参数时。 注册失败时，不会在后台引发异常并重试该异常。<br>
+     * 2. 当URL设置了 category=routers，将会通知指定类型的数据。多个分类用逗号分隔，并允许星号匹配，这表示已订阅所有分类数据。<br>
+     * 3. 允许将接口，组，版本和分类器作为条件查询，例如：interface = com.alibaba.foo.BarService＆version = 1.0.0<br>
+     * 4. 查询条件允许星号匹配，订阅所有接口的所有数据包的所有版本，例如 ：interface = *＆group = *＆version = *＆classifier = *<br>
+     * 5. 当注册表重新启动并且出现网络抖动时，有必要自动恢复订阅请求。<br>
+     * 6. 允许具有相同URL但不同参数的URL共存，它们不能相互覆盖。<br>
+     * 7. 当第一个通知完成并且返回后，订阅程序必须被阻塞<br>
      *
-     * @param url      Subscription condition, not allowed to be empty, e.g. consumer://10.20.153.10/com.alibaba.foo.BarService?version=1.0.0&application=kylin
-     * @param listener A listener of the change event, not allowed to be empty
+     * @param url      订阅条件，不允许为空， e.g. consumer://10.20.153.10/com.alibaba.foo.BarService?version=1.0.0&application=kylin
+     * @param listener 事件变化的监听器，不允许为空
      */
     void subscribe(URL url, NotifyListener listener);
 
     /**
-     * Unsubscribe
+     * 取消订阅
      * <p>
-     * Unsubscribing is required to support the contract:<br>
-     * 1. If don't subscribe, ignore it directly.<br>
-     * 2. Unsubscribe by full URL match.<br>
+     * 取消订阅要遵循的规则<br>
+     * 1. 如果没有订阅，则直接忽略它。<br>
+     * 2. 取消订阅完整的URL匹配。<br>
      *
      * @param url      Subscription condition, not allowed to be empty, e.g. consumer://10.20.153.10/com.alibaba.foo.BarService?version=1.0.0&application=kylin
      * @param listener A listener of the change event, not allowed to be empty
@@ -85,8 +85,9 @@ public interface RegistryService {
     /**
      * Query the registered data that matches the conditions. Corresponding to the push mode of the subscription, this is the pull mode and returns only one result.
      *
+     * 查找匹配条件的注册过的数据.对于订阅的推送模式，这是请求模式将会返回一个结果
      * @param url Query condition, is not allowed to be empty, e.g. consumer://10.20.153.10/com.alibaba.foo.BarService?version=1.0.0&application=kylin
-     * @return The registered information list, which may be empty, the meaning is the same as the parameters of {@link com.alibaba.dubbo.registry.NotifyListener#notify(List<URL>)}.
+     * @return  注册信息列表，可以为空，含义与参数相同{@link com.alibaba.dubbo.registry.NotifyListener#notify(List<URL>)}.
      * @see com.alibaba.dubbo.registry.NotifyListener#notify(List)
      */
     List<URL> lookup(URL url);

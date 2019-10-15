@@ -29,6 +29,9 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 
 import java.util.List;
 
+/**
+ * 通过组合ZkClientWrapper的client实现对zookeeper的操作
+ */
 public class ZkclientZookeeperClient extends AbstractZookeeperClient<IZkChildListener> {
 
     private final ZkClientWrapper client;

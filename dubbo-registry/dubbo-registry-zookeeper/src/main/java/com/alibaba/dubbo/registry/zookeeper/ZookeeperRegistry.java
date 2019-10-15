@@ -45,15 +45,25 @@ public class ZookeeperRegistry extends FailbackRegistry {
     private final static Logger logger = LoggerFactory.getLogger(ZookeeperRegistry.class);
 
     private final static int DEFAULT_ZOOKEEPER_PORT = 2181;
-
+    /**
+     * 默认zookeeper的根节点
+     */
     private final static String DEFAULT_ROOT = "dubbo";
-
+    /**
+     * zookeeper的根节点
+     */
     private final String root;
-
+    /**
+     * 服务接口集合
+     */
     private final Set<String> anyServices = new ConcurrentHashSet<String>();
-
+    /**
+     * 监听器
+     */
     private final ConcurrentMap<URL, ConcurrentMap<NotifyListener, ChildListener>> zkListeners = new ConcurrentHashMap<URL, ConcurrentMap<NotifyListener, ChildListener>>();
-
+    /**
+     * 操作zookeeper的客户端实例
+     */
     private final ZookeeperClient zkClient;
 
     public ZookeeperRegistry(URL url, ZookeeperTransporter zookeeperTransporter) {
@@ -61,15 +71,23 @@ public class ZookeeperRegistry extends FailbackRegistry {
         if (url.isAnyHost()) {
             throw new IllegalStateException("registry address == null");
         }
+        //获取url中的group属性，不存在使用dubbo作为默认分组
         String group = url.getParameter(Constants.GROUP_KEY, DEFAULT_ROOT);
+        //如果不以"/"开头，添加文件分隔符
         if (!group.startsWith(Constants.PATH_SEPARATOR)) {
             group = Constants.PATH_SEPARATOR + group;
         }
+        //zookeeper的根节点为group
         this.root = group;
+        //基于dubbo的spi机制会根据url中携带的参数去选择用哪个实现类。
+        //目前提供了ZkclientZookeeperTransporter这时候的zkClient为ZkclientZookeeperClient
+        //CuratorZookeeperTransporter这时候的zkClient为CuratorZookeeperClient
         zkClient = zookeeperTransporter.connect(url);
+        //添加状态监听器
         zkClient.addStateListener(new StateListener() {
             @Override
             public void stateChanged(int state) {
+                //重连后，调动recover方法
                 if (state == RECONNECTED) {
                     try {
                         recover();
@@ -111,6 +129,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
     @Override
     protected void doRegister(URL url) {
         try {
+            //创建URL节点
             zkClient.create(toUrlPath(url), url.getParameter(Constants.DYNAMIC_KEY, true));
         } catch (Throwable e) {
             throw new RpcException("Failed to register " + url + " to zookeeper " + getUrl() + ", cause: " + e.getMessage(), e);
@@ -129,30 +148,41 @@ public class ZookeeperRegistry extends FailbackRegistry {
     @Override
     protected void doSubscribe(final URL url, final NotifyListener listener) {
         try {
+            //订阅所有数据,监控中心的订阅
             if (Constants.ANY_VALUE.equals(url.getServiceInterface())) {
+                //获取根目录
                 String root = toRootPath();
+                //获取url对应的监听器集合
                 ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
                 if (listeners == null) {
+                    //不存在，赋值新的
                     zkListeners.putIfAbsent(url, new ConcurrentHashMap<NotifyListener, ChildListener>());
                     listeners = zkListeners.get(url);
                 }
+                //获取listener的监听器
                 ChildListener zkListener = listeners.get(listener);
+                //zkListener为null说明需要创建新的
                 if (zkListener == null) {
                     listeners.putIfAbsent(listener, new ChildListener() {
                         @Override
                         public void childChanged(String parentPath, List<String> currentChilds) {
+                            //遍历当前节点，如果服务集合没有该节点，加入该节点，并订阅节点
                             for (String child : currentChilds) {
                                 child = URL.decode(child);
                                 if (!anyServices.contains(child)) {
+                                    //添加到服务接口集合中
                                     anyServices.add(child);
+                                    //订阅URL
                                     subscribe(url.setPath(child).addParameters(Constants.INTERFACE_KEY, child,
                                             Constants.CHECK_KEY, String.valueOf(false)), listener);
                                 }
                             }
                         }
                     });
+                    //再次获取listener对应的ChildListener
                     zkListener = listeners.get(listener);
                 }
+                //创建root永久节点
                 zkClient.create(root, false);
                 List<String> services = zkClient.addChildListener(root, zkListener);
                 if (services != null && !services.isEmpty()) {
@@ -164,7 +194,9 @@ public class ZookeeperRegistry extends FailbackRegistry {
                     }
                 }
             } else {
+                //处理消费者的订阅请求
                 List<URL> urls = new ArrayList<URL>();
+                //获取url的所有费类型后
                 for (String path : toCategoriesPath(url)) {
                     ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
                     if (listeners == null) {
@@ -252,10 +284,12 @@ public class ZookeeperRegistry extends FailbackRegistry {
 
     private String[] toCategoriesPath(URL url) {
         String[] categories;
+        //代表所有类别
         if (Constants.ANY_VALUE.equals(url.getParameter(Constants.CATEGORY_KEY))) {
             categories = new String[]{Constants.PROVIDERS_CATEGORY, Constants.CONSUMERS_CATEGORY,
                     Constants.ROUTERS_CATEGORY, Constants.CONFIGURATORS_CATEGORY};
         } else {
+            //获取url的category属性，没有则给定provider类型
             categories = url.getParameter(Constants.CATEGORY_KEY, new String[]{Constants.DEFAULT_CATEGORY});
         }
         String[] paths = new String[categories.length];
