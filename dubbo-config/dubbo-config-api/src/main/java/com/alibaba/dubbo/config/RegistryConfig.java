@@ -22,8 +22,9 @@ import com.alibaba.dubbo.config.support.Parameter;
 import java.util.Map;
 
 /**
- * RegistryConfig
- *
+ * 注册中心配置，用于配置连接注册中心相关信息。
+ * 同时如果有多个不同的注册中心，可以声明多个 <dubbo:registry> 标签，
+ * 并在 <dubbo:service> 或 <dubbo:reference> 的 registry 属性指定使用的注册中心。
  * @export
  */
 public class RegistryConfig extends AbstractConfig {
@@ -31,61 +32,133 @@ public class RegistryConfig extends AbstractConfig {
     public static final String NO_AVAILABLE = "N/A";
     private static final long serialVersionUID = 5508512956753757169L;
     // register center address
+    /**
+     * 注册中心地址
+     */
     private String address;
 
     // username to login register center
+    /**
+     * 登录注册中心的用户名
+     */
     private String username;
 
     // password to login register center
+    /**
+     * 登录注册中心的密码
+     */
     private String password;
 
     // default port for register center
+    /**
+     * 注册中心端口号
+     */
     private Integer port;
 
     // protocol for register center
+    /**
+     * 注册中心使用协议
+     */
     private String protocol;
 
     // client impl
+    /**
+     * 网络传输方式，可选netty、mina、grizzly、http
+     */
     private String transporter;
-
+    /**
+     * 默认dubbo协议是netty、http协议是servlet
+     */
     private String server;
-
+    /**
+     * 默认dubbo协议是netty
+     */
     private String client;
-
+    /**
+     * 容错支持，默认值failover，失败自动重试，
+     * 对应<dubbo:service 、<dubbo:reference、<dubbo:provider、<dubbo:consumer
+     * 标签cluster属性，容错机制一共有以下几种
+     */
     private String cluster;
-
+    /**
+     * 默认值 dubbo，服务注册分组，跨组服务不会相互影响，且不能相互调用，适合于环境隔离
+     */
     private String group;
-
+    /**
+     * 版本号
+     */
     private String version;
 
     // request timeout in milliseconds for register center
+    /**
+     *  request timeout in milliseconds for register center
+     *  注册中心请求超时时间(毫秒)
+     */
     private Integer timeout;
 
     // session timeout in milliseconds for register center
+    /**
+     * session timeout in milliseconds for register center
+     * 注册中心会话超时时间(毫秒)，
+     * 用于检测提供者非正常断线后的脏数据，
+     * 比如用心跳检测的实现，此时间就是心跳间隔，
+     * 不同注册中心实现不一样。
+     */
     private Integer session;
 
     // file for saving register center dynamic list
+    /**
+     * 使用文件缓存注册中心地址列表及服务提供者列表，
+     * 应用重启时将基于此文件恢复，
+     * 注意：两个注册中心不能使用同一文件存储
+     */
     private String file;
 
     // wait time before stop
+    /**
+     * wait time before stop
+     * 停止时等待通知完成时间(毫秒)
+     */
     private Integer wait;
 
     // whether to check if register center is available when boot up
+    /**
+     *  注册中心不存在时，是否报错
+     */
     private Boolean check;
 
     // whether to allow dynamic service to register on the register center
+    /**
+     *服务是否动态注册，如果设为false，
+     * 注册后将显示为disable状态，需人工启用，
+     * 并且服务提供者停止时，也不会自动取消注册，需人工禁用。
+     */
     private Boolean dynamic;
 
     // whether to export service on the register center
+    /**
+     * 是否向此注册中心注册服务，
+     * 如果设为false，将只订阅，不注册
+     */
     private Boolean register;
 
     // whether allow to subscribe service on the register center
+    /**
+     *是否向此注册中心订阅服务，
+     * 如果设为false，将只注册，不订阅
+     */
     private Boolean subscribe;
 
     // customized parameters
+    /**
+     * 其他定制化的参数
+     */
     private Map<String, String> parameters;
 
     // if it's default
+    /**
+     * 是否默认
+     */
     private Boolean isDefault;
 
     public RegistryConfig() {

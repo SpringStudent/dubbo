@@ -27,7 +27,7 @@ import java.util.Map;
 
 
 /**
- * ApplicationConfig
+ * 应用配置，用于配置当前应用信息，不管该应用是提供者还是消费者。
  *
  * @export
  */
@@ -36,48 +36,93 @@ public class ApplicationConfig extends AbstractConfig {
     private static final long serialVersionUID = 5508512956753757169L;
 
     // application name
+    /**
+     * 应用名称
+     */
     private String name;
 
     // module version
+    /**
+     * 版本号
+     */
     private String version;
 
     // application owner
+    /**
+     * 归属人,服务治理的负责人
+     */
     private String owner;
 
     // application's organization (BU)
+    /**
+     * 组织(BU)部门
+     */
     private String organization;
 
     // architecture layer
+    /**
+     *层次结构
+     */
     private String architecture;
 
     // environment, e.g. dev, test or production
+    /**
+     * 环境：比如dev,test,production
+      */
     private String environment;
 
     // Java compiler
+    /**
+     * java字节码编译期
+     */
     private String compiler;
 
     // logger
+    /**
+     * 日志输出方式
+     */
     private String logger;
 
     // registry centers
+    /**
+     * 注册中心配置
+     */
     private List<RegistryConfig> registries;
 
     // monitor center
+    /**
+     * 监控中心配置
+     */
     private MonitorConfig monitor;
 
     // is default or not
+    /**
+     * 是否为默认
+     */
     private Boolean isDefault;
 
     // directory for saving thread dump
+    /**
+     * 保存线程dump文件目录
+     */
     private String dumpDirectory;
 
     // whether to enable qos or not
+    /**
+     * 是否开启qos
+     */
     private Boolean qosEnable;
 
     // the qos port to listen
+    /**
+     * 监听的qos端口号
+     */
     private Integer qosPort;
 
     // should we accept foreign ip or not?
+    /**
+     *
+     */
     private Boolean qosAcceptForeignIp;
 
     // customized parameters

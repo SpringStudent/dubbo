@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ModuleConfig
+ * 模块配置，用于配置当前模块信息，可选。
  *
  * @export
  */
@@ -31,24 +31,46 @@ public class ModuleConfig extends AbstractConfig {
     private static final long serialVersionUID = 5508512956753757169L;
 
     // module name
+    /**
+     * 当前模块名称，用于注册中心计算模块间依赖关系
+     */
     private String name;
 
     // module version
+    /**
+     * 模块负责人，用于服务治理，请填写负责人公司邮箱前缀
+     */
     private String version;
 
     // module owner
+    /**
+     * 模块所属人
+     */
     private String owner;
 
     // module's organization
+    /**
+     * 组织名称(BU或部门)，用于注册中心区分服务来源，
+     * 此配置项建议不要使用autoconfig，直接写死在配置中，比如
+     */
     private String organization;
 
     // registry centers
+    /**
+     * 注册中心配置
+     */
     private List<RegistryConfig> registries;
 
     // monitor center
+    /**
+     * 监控中心
+     */
     private MonitorConfig monitor;
 
     // if it's default
+    /**
+     * 是否默认
+     */
     private Boolean isDefault;
 
     public ModuleConfig() {

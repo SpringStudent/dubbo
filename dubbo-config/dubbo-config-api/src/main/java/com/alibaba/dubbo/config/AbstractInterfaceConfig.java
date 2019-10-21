@@ -53,34 +53,65 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     private static final long serialVersionUID = -1559314110797223229L;
 
     // local impl class name for the service interface
+    /**
+     * 设为true，表示使用缺省代理类名，即：接口名 + Local后缀，已废弃，请使用stub
+     */
     protected String local;
 
-    // local stub class name for the service interface
+    // 服务接口的本地存根类名称
+    /**
+     *设为true，表示使用缺省代理类名，即：接口名 + Stub后缀，服务接口客户端本地代理类名，用于在客户端执行本地逻辑，
+     * 如本地缓存等，该本地代理类的构造函数必须允许传入远程代理对象，
+     * 构造函数如：public XxxServiceStub(XxxService xxxService)
+     */
     protected String stub;
 
     // service monitor
     protected MonitorConfig monitor;
 
     // proxy type
+    /**
+     * 生成动态代理方式，可选：jdk/javassist
+     */
     protected String proxy;
 
     // cluster type
+    /**
+     * 集群方式，可选：failover/failfast/failsafe/failback/forking
+     */
     protected String cluster;
 
     // filter
+    /**
+     * service.filter	服务提供方远程调用过程拦截器名称，多个名称用逗号分隔
+     * reference.filter 服务消费方远程调用过程拦截器名称，多个名称用逗号分隔
+     */
     protected String filter;
 
     // listener
+    /**
+     * exporter.listener 服务提供方导出服务监听器名称，多个名称用逗号分隔
+     * invoker.listener 服务消费方引用服务监听器名称，多个名称用逗号分隔
+     */
     protected String listener;
 
     // owner
+    /**
+     * 服务负责人，用于服务治理，请填写负责人公司邮箱前缀
+     */
     protected String owner;
 
     // connection limits, 0 means shared connection, otherwise it defines the connections delegated to the
     // current service
+    /**
+     * 对每个提供者的最大连接数，rmi、http、hessian等短连接协议表示限制连接数，dubbo等长连接协表示建立的长连接个数
+     */
     protected Integer connections;
 
     // layer
+    /**
+     * 服务提供者所在的分层。如：biz、dao、intl:web、china:acton。
+     */
     protected String layer;
 
     // application info

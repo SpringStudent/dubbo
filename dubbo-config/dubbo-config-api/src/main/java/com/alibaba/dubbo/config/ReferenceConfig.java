@@ -56,7 +56,7 @@ import java.util.Properties;
 import static com.alibaba.dubbo.common.utils.NetUtils.isInvalidLocalHost;
 
 /**
- * ReferenceConfig
+ * 服务消费者引用服务配置。
  *
  * @export
  */
@@ -74,13 +74,22 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
     private String interfaceName;
     private Class<?> interfaceClass;
     // client type
+    /**
+     * 客户端传输类型设置，如Dubbo协议的netty或mina。
+     */
     private String client;
     // url for peer-to-peer invocation
+    /**
+     * 点对点直连服务提供者地址，将绕过注册中心
+     */
     private String url;
     // method configs
     private List<MethodConfig> methods;
     // default config
     private ConsumerConfig consumer;
+    /**
+     * 只调用指定协议的服务提供方，其它协议忽略。
+     */
     private String protocol;
     // interface proxy reference
     private transient volatile T ref;

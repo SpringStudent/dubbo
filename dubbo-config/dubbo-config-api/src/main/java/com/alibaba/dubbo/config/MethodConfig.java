@@ -26,8 +26,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * MethodConfig
+ * 方法级配置。
+ * 同时该标签为 <dubbo:service> 或 <dubbo:reference> 的子标签，用于控制到方法级。
  *
+ *  <dubbo:reference interface="com.xxx.XxxService">
+ *     <dubbo:method name="findXxx" timeout="3000" retries="2" />
+ * </dubbo:reference>
  * @export
  */
 public class MethodConfig extends AbstractMethodConfig {
@@ -35,6 +39,9 @@ public class MethodConfig extends AbstractMethodConfig {
     private static final long serialVersionUID = 884908855422675941L;
 
     // method name
+    /**
+     * 方法名
+     */
     private String name;
 
     // stat
@@ -47,30 +54,48 @@ public class MethodConfig extends AbstractMethodConfig {
     private Boolean reliable;
 
     // thread limits for method invocations
+    /**
+     * 每服务每方法最大使用线程数限制- -，此属性只在<dubbo:method>作为<dubbo:service>子标签时有效
+     */
     private Integer executes;
 
     // if it's deprecated
+    /**
+     * 服务方法是否过时，此属性只在<dubbo:method>作为<dubbo:service>子标签时有效
+     */
     private Boolean deprecated;
 
     // whether to enable sticky
+    /**
+     * 设置true 该接口上的所有方法使用同一个provider.如果需要更复杂的规则，请使用用路由
+     */
     private Boolean sticky;
 
     // whether need to return
     private Boolean isReturn;
 
     // callback instance when async-call is invoked
+    /**
+     * 方法执行前拦截
+     */
     private Object oninvoke;
 
     // callback method when async-call is invoked
     private String oninvokeMethod;
 
     // callback instance when async-call is returned
+    /**
+     * 方法执行返回后拦截
+     */
     private Object onreturn;
 
     // callback method when async-call is returned
     private String onreturnMethod;
 
     // callback instance when async-call has exception thrown
+    /**
+     * 方法执行有异常拦截
+     */
     private Object onthrow;
 
     // callback method when async-call has exception thrown

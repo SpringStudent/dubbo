@@ -76,6 +76,9 @@ public abstract class AbstractConfig implements Serializable {
         Runtime.getRuntime().addShutdownHook(DubboShutdownHook.getDubboShutdownHook());
     }
 
+    /**
+     * 协议BeanId，可以在<dubbo:service proivder="">中引用此ID
+     */
     protected String id;
 
     private static String convertLegacyValue(String key, String value) {

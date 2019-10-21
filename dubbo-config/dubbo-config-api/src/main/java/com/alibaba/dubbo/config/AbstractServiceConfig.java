@@ -33,38 +33,75 @@ public abstract class AbstractServiceConfig extends AbstractInterfaceConfig {
     private static final long serialVersionUID = 1L;
 
     // version
+    /**
+     * 服务版本，建议使用两位数字版本，如：1.0，通常在接口不兼容时版本号才需要升级
+     */
     protected String version;
 
     // group
+    /**
+     * 服务分组，当一个接口有多个实现，可以用分组区分
+     */
     protected String group;
 
     // whether the service is deprecated
+    /**
+     * 服务是否过时，如果设为true，消费方引用时将打印服务过时警告error日志
+     */
     protected Boolean deprecated;
 
     // delay service exporting
+    /**
+     * 延迟注册服务时间(毫秒) ，设为-1时，表示延迟到Spring容器初始化完成时暴露服务
+     */
     protected Integer delay;
 
     // whether to export the service
+    /**
+     * 是否导出服务
+     */
     protected Boolean export;
 
     // weight
+    /**
+     * 服务权重
+     */
     protected Integer weight;
 
     // document center
+    /**
+     * 服务文档URL
+     */
     protected String document;
 
     // whether to register as a dynamic service or not on register center
+    /**
+     * 服务是否动态注册，如果设为false，注册后将显示后disable状态，需人工启用，并且服务提供者停止时，也不会自动取消册，需人工禁用。
+     */
     protected Boolean dynamic;
 
     // whether to use token
+    /**
+     * 令牌验证，为空表示不开启，如果为true，表示随机生成动态令牌，否则使用静态令牌，
+     * 令牌的作用是防止消费者绕过注册中心直接访问，保证注册中心的授权功能有效，如果使用点对点调用，需关闭令牌功能
+     */
     protected String token;
 
     // access log
+    /**
+     * 设为true，将向logger中输出访问日志，也可填写访问日志文件路径，直接把访问日志输出到指定文件
+     */
     protected String accesslog;
     protected List<ProtocolConfig> protocols;
     // max allowed execute times
+    /**
+     * 服务提供者每服务每方法最大可并行执行请求数
+     */
     private Integer executes;
     // whether to register
+    /**
+     * 该协议的服务是否注册到注册中心
+     */
     private Boolean register;
 
     // warm up period

@@ -23,8 +23,8 @@ import com.alibaba.dubbo.rpc.cluster.LoadBalance;
 import java.util.Map;
 
 /**
- * AbstractMethodConfig
- *
+ * 方法级配置。对应的配置类：
+ * 同时该标签为 <dubbo:service> 或 <dubbo:reference> 的子标签，用于控制到方法级。
  * @export
  */
 public abstract class AbstractMethodConfig extends AbstractConfig {
@@ -32,21 +32,39 @@ public abstract class AbstractMethodConfig extends AbstractConfig {
     private static final long serialVersionUID = 1L;
 
     // timeout for remote invocation in milliseconds
+    /**
+     * 方法调用超时时间(毫秒)
+     */
     protected Integer timeout;
 
     // retry times
+    /**
+     * 远程服务调用重试次数，不包括第一次调用，不需要重试请设为0
+     */
     protected Integer retries;
 
     // max concurrent invocations
+    /**
+     * 每服务消费者最大并发调用
+     */
     protected Integer actives;
 
     // load balance
+    /**
+     * 负载均衡策略，可选值：random,roundrobin,leastactive，分别表示：随机，轮询，最少活跃调用
+     */
     protected String loadbalance;
 
     // whether to async
+    /**
+     * 是否异步执行，不可靠异步，只是忽略返回值，不阻塞执行线程
+     */
     protected Boolean async;
 
     // whether to ack async-sent
+    /**
+     * 异步调用时，标记sent=true时，表示网络已发出数据
+     */
     protected Boolean sent;
 
     // the name of mock class which gets called when a service fails to execute
@@ -56,9 +74,15 @@ public abstract class AbstractMethodConfig extends AbstractConfig {
     protected String merger;
 
     // cache
+    /**
+     * 以调用参数为key，缓存返回结果，可选：lru, threadlocal, jcache等
+     */
     protected String cache;
 
     // validation
+    /**
+     * 是否启用JSR303标准注解验证，如果启用，将对方法参数上的注解进行校验
+     */
     protected String validation;
 
     // customized parameters

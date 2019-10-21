@@ -248,7 +248,7 @@ public class ExtensionLoader<T> {
      * @see com.alibaba.dubbo.common.extension.Activate
      */
     /**
-     * 获得自动激活的扩展对象
+     * 获得激活的扩展对象
      *
      * @param url
      * @param values
@@ -345,11 +345,13 @@ public class ExtensionLoader<T> {
     }
 
     private boolean isActive(Activate activate, URL url) {
+        //该自动激活的扩展实现类型适用于那些value
         String[] keys = activate.value();
         if (keys.length == 0) {
             return true;
         }
         for (String key : keys) {
+            //只有url中有参数匹配上了我指定的value才能够用
             for (Map.Entry<String, String> entry : url.getParameters().entrySet()) {
                 String k = entry.getKey();
                 String v = entry.getValue();
@@ -825,7 +827,7 @@ public class ExtensionLoader<T> {
             //添加包装类
             wrappers.add(clazz);
         } else {
-            //获取构造函数
+            //判断构造函数是否合法
             clazz.getConstructor();
             //未配置name生成一个 兼容javaSPI的配置
             if (name == null || name.length() == 0) {

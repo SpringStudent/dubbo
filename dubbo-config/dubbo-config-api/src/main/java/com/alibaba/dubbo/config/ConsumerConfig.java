@@ -17,8 +17,8 @@
 package com.alibaba.dubbo.config;
 
 /**
- * ConsumerConfig
- *
+ * 服务消费者缺省值配置。
+ * 同时该标签为 <dubbo:reference> 标签的缺省值设置。
  * @export
  */
 public class ConsumerConfig extends AbstractReferenceConfig {
@@ -29,6 +29,9 @@ public class ConsumerConfig extends AbstractReferenceConfig {
     private Boolean isDefault;
 
     // networking framework client uses: netty, mina, etc.
+    /**
+     * 框架客户端使用的通讯框架:netty,mina
+     */
     private String client;
 
     // consumer thread pool type: cached, fixed, limit, eager
