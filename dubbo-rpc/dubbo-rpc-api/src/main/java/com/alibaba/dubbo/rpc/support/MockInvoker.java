@@ -185,7 +185,7 @@ final public class MockInvoker<T> implements Invoker<T> {
 
 
     /**
-     * Normalize mock string:
+     * 统一mock字符串
      *
      * <ol>
      * <li>return => return null</li>

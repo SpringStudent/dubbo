@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 /**
  * Utility methods and public methods for parsing configuration
- *
+ * 为解析配置提供了工具类方法和公共方法
  * @export
  */
 public abstract class AbstractConfig implements Serializable {
@@ -97,23 +97,30 @@ public abstract class AbstractConfig implements Serializable {
             return;
         }
         String prefix = "dubbo." + getTagName(config.getClass()) + ".";
+        //获取配置类的所有方法
         Method[] methods = config.getClass().getMethods();
         for (Method method : methods) {
             try {
                 String name = method.getName();
+                //set方法、public的，只有一个参数，参数必须为基本类型
                 if (name.length() > 3 && name.startsWith("set") && Modifier.isPublic(method.getModifiers())
                         && method.getParameterTypes().length == 1 && isPrimitive(method.getParameterTypes()[0])) {
+                    //属性名称
                     String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), ".");
 
                     String value = null;
+                    //比如dubbo.provider.id.host
                     if (config.getId() != null && config.getId().length() > 0) {
+                        //dubbo.provider.id.host
                         String pn = prefix + config.getId() + "." + property;
                         value = System.getProperty(pn);
                         if (!StringUtils.isBlank(value)) {
                             logger.info("Use System Property " + pn + " to config dubbo");
                         }
                     }
+                    //比如dubbo.provider.host
                     if (value == null || value.length() == 0) {
+
                         String pn = prefix + property;
                         value = System.getProperty(pn);
                         if (!StringUtils.isBlank(value)) {
@@ -121,6 +128,7 @@ public abstract class AbstractConfig implements Serializable {
                         }
                     }
                     if (value == null || value.length() == 0) {
+                        //属性的get或者is方法
                         Method getter;
                         try {
                             getter = config.getClass().getMethod("get" + name.substring(3));
@@ -132,6 +140,7 @@ public abstract class AbstractConfig implements Serializable {
                             }
                         }
                         if (getter != null) {
+                            //配置类的getter方法返回null，从系统环境变量dubbo.properties.file指定的文件中读取值
                             if (getter.invoke(config) == null) {
                                 if (config.getId() != null && config.getId().length() > 0) {
                                     value = ConfigUtils.getProperty(prefix + config.getId() + "." + property);
@@ -184,26 +193,41 @@ public abstract class AbstractConfig implements Serializable {
         for (Method method : methods) {
             try {
                 String name = method.getName();
+                //方法名以get或者is开头
+                //不是getClass方法
+                //public修饰的方法
+                //返回值类型为一些节本类型的类型
                 if ((name.startsWith("get") || name.startsWith("is"))
                         && !"getClass".equals(name)
                         && Modifier.isPublic(method.getModifiers())
                         && method.getParameterTypes().length == 0
                         && isPrimitive(method.getReturnType())) {
+                    //获取方法的Parameter注解
+                    //如果方法
                     Parameter parameter = method.getAnnotation(Parameter.class);
+                    //方法返回Object类型或者(parameter注解不是null并且方法excluded)
                     if (method.getReturnType() == Object.class || parameter != null && parameter.excluded()) {
                         continue;
                     }
+                    //get或者is方法的属性名称对应的下标号
+                    //getXxx返回3 isXxx返回2
                     int i = name.startsWith("get") ? 3 : 2;
+                    //属性名称
                     String prop = StringUtils.camelToSplitName(name.substring(i, i + 1).toLowerCase() + name.substring(i + 1), ".");
                     String key;
+                    //通过@Parameter注解指定key
                     if (parameter != null && parameter.key().length() > 0) {
                         key = parameter.key();
                     } else {
                         key = prop;
                     }
+                    //反射获取调用值
                     Object value = method.invoke(config);
+                    //字符串化getXxx的返回值
                     String str = String.valueOf(value).trim();
+                    //如果反射调用返回值存在;并且需要根据@Parameter做一些特殊处理
                     if (value != null && str.length() > 0) {
+                        //指定需要编码
                         if (parameter != null && parameter.escaped()) {
                             str = URL.encode(str);
                         }
@@ -217,6 +241,7 @@ public abstract class AbstractConfig implements Serializable {
                                 str = pre + "," + str;
                             }
                         }
+                        //是否包含prefix参数
                         if (prefix != null && prefix.length() > 0) {
                             key = prefix + "." + key;
                         }
@@ -224,12 +249,15 @@ public abstract class AbstractConfig implements Serializable {
                     } else if (parameter != null && parameter.required()) {
                         throw new IllegalStateException(config.getClass().getSimpleName() + "." + key + " == null");
                     }
+                //如果是getParameters方法
                 } else if ("getParameters".equals(name)
                         && Modifier.isPublic(method.getModifiers())
                         && method.getParameterTypes().length == 0
                         && method.getReturnType() == Map.class) {
+                    //反射调用返回getParameters的返回值
                     Map<String, String> map = (Map<String, String>) method.invoke(config, new Object[0]);
                     if (map != null && map.size() > 0) {
+                        //parameters map中key的前缀
                         String pre = (prefix != null && prefix.length() > 0 ? prefix + "." : "");
                         for (Map.Entry<String, String> entry : map.entrySet()) {
                             parameters.put(pre + entry.getKey().replace('-', '.'), entry.getValue());
@@ -241,6 +269,7 @@ public abstract class AbstractConfig implements Serializable {
             }
         }
     }
+
 
     protected static void appendAttributes(Map<Object, Object> parameters, Object config) {
         appendAttributes(parameters, config, null);

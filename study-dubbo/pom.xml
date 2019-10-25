@@ -380,6 +380,11 @@
             <scope>test</scope>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.gysoft</groupId>
+            <artifactId>GY-Tracing</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>

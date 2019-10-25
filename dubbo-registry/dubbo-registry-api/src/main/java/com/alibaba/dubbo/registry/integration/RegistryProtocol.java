@@ -132,43 +132,63 @@ public class RegistryProtocol implements Protocol {
     @Override
     public <T> Exporter<T> export(final Invoker<T> originInvoker) throws RpcException {
         //export invoker
+        //导出服务
         final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker);
-
+        // 获取注册中心 URL，以 zookeeper 注册中心为例，得到的示例 URL 如下：
+        // zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=demo-provider&dubbo=2.0.2&export=dubbo%3A%2F%2F172.17.48.52%3A20880%2Fcom.alibaba.dubbo.demo.DemoService%3Fanyhost%3Dtrue%26application%3Ddemo-provider
         URL registryUrl = getRegistryUrl(originInvoker);
 
         //registry provider
+        // 根据 URL 加载 Registry 实现类，比如 ZookeeperRegistry
         final Registry registry = getRegistry(originInvoker);
+        // 获取已注册的服务提供者 URL，比如：
+        // dubbo://172.17.48.52:20880/com.alibaba.dubbo.demo.DemoService?anyhost=true&application=demo-provider&dubbo=2.0.2&generic=false&interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello
         final URL registeredProviderUrl = getRegisteredProviderUrl(originInvoker);
 
         //to judge to delay publish whether or not
+        //获取register参数;register表示是否注册到注册中心
         boolean register = registeredProviderUrl.getParameter("register", true);
-
+        //缓存到ProviderConsumerRegTable的表中
         ProviderConsumerRegTable.registerProvider(originInvoker, registryUrl, registeredProviderUrl);
-
+        //注册服务到zookeeper
         if (register) {
             register(registryUrl, registeredProviderUrl);
+            //找到该originInvoker对应的ProviderInvokerWrapper设置reg属性为true
             ProviderConsumerRegTable.getProviderWrapper(originInvoker).setReg(true);
         }
 
         // Subscribe the override data
         // FIXME When the provider subscribes, it will affect the scene : a certain JVM exposes the service and call the same service. Because the subscribed is cached key with the name of the service, it causes the subscription information to cover.
+        // FIXME 提供者订阅时，会影响同一JVM即暴露服务，又引用同一服务的的场景，因为subscribed以服务名为缓存的key，导致订阅信息覆盖
         final URL overrideSubscribeUrl = getSubscribedOverrideUrl(registeredProviderUrl);
+        //创建监听器
         final OverrideListener overrideSubscribeListener = new OverrideListener(overrideSubscribeUrl, originInvoker);
+        //放入overrideSubscribeUrl对应的OverrideListener
         overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);
+        // 向注册中心进行订阅 override 数据
         registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);
         //Ensure that a new exporter instance is returned every time export
+        //创建并返回DestroyableExporter
         return new DestroyableExporter<T>(exporter, originInvoker, overrideSubscribeUrl, registeredProviderUrl);
     }
 
     @SuppressWarnings("unchecked")
     private <T> ExporterChangeableWrapper<T> doLocalExport(final Invoker<T> originInvoker) {
+        //dubbo://169.254.22.149:20880/com.alibaba.dubbo.study.day01.xml.service.EchoService?
+        // anyhost=true&application=echo-provider&bean.name=com.alibaba.dubbo.study.day01.xml.service.EchoService&bind.ip=169.254.22.149&
+        // bind.port=20880&dubbo=2.0.2&generic=false&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo&pid=7112&
+        // side=provider&timestamp=1571811748186
         String key = getCacheKey(originInvoker);
         ExporterChangeableWrapper<T> exporter = (ExporterChangeableWrapper<T>) bounds.get(key);
         if (exporter == null) {
             synchronized (bounds) {
                 exporter = (ExporterChangeableWrapper<T>) bounds.get(key);
                 if (exporter == null) {
+                    //创建invoker委托类对象
                     final Invoker<?> invokerDelegete = new InvokerDelegete<T>(originInvoker, getProviderUrl(originInvoker));
+                    //调用protocol的export方法导出服务
+                    //这个时候返回的url肯定是类似dubbo://....这样子的所以protocol
+                    //由于dubbo的spi机制，此时肯定是通过DubboProtocol的export方法
                     exporter = new ExporterChangeableWrapper<T>((Exporter<T>) protocol.export(invokerDelegete), originInvoker);
                     bounds.put(key, exporter);
                 }
@@ -196,7 +216,8 @@ public class RegistryProtocol implements Protocol {
     }
 
     /**
-     * Get an instance of registry based on the address of invoker
+     *
+     * 根据调用者的地址获取注册表的实例
      *
      * @param originInvoker
      * @return
@@ -235,6 +256,10 @@ public class RegistryProtocol implements Protocol {
                 .removeParameter(VALIDATION_KEY);
     }
 
+    /**
+     * 1.将协议修改为provider
+     * 2.添加category="configurators"和check=false
+     */
     private URL getSubscribedOverrideUrl(URL registedProviderUrl) {
         return registedProviderUrl.setProtocol(Constants.PROVIDER_PROTOCOL)
                 .addParameters(Constants.CATEGORY_KEY, Constants.CONFIGURATORS_CATEGORY,
@@ -244,6 +269,7 @@ public class RegistryProtocol implements Protocol {
     /**
      * Get the address of the providerUrl through the url of the invoker
      *
+     * 通过调用者的网址获取providerUrl的地址
      * @param origininvoker
      * @return
      */
@@ -354,9 +380,13 @@ public class RegistryProtocol implements Protocol {
 
     /**
      * Reexport: the exporter destroy problem in protocol
+     * 重新导入:协议中的exporter的destroy问题
      * 1.Ensure that the exporter returned by registryprotocol can be normal destroyed
+     * 1.确保registryprotocol返回的导出程序可以正常销毁
      * 2.No need to re-register to the registry after notify
+     * 2.通知后无需重新注册到注册表
      * 3.The invoker passed by the export method , would better to be the invoker of exporter
+     * 3.由export方法传递的调用者，最好是exporter的调用者
      */
     private class OverrideListener implements NotifyListener {
 
@@ -369,6 +399,7 @@ public class RegistryProtocol implements Protocol {
         }
 
         /**
+         * 已注册信息的列表始终不能为空，其含义与{@link com.alibaba.dubbo.registry.RegistryService＃lookup（URL）}的返回值相同
          * @param urls The list of registered information , is always not empty, The meaning is the same as the return value of {@link com.alibaba.dubbo.registry.RegistryService#lookup(URL)}.
          */
         @Override
@@ -436,7 +467,6 @@ public class RegistryProtocol implements Protocol {
 
     /**
      * exporter proxy, establish the corresponding relationship between the returned exporter and the exporter exported by the protocol, and can modify the relationship at the time of override.
-     *
      * @param <T>
      */
     private class ExporterChangeableWrapper<T> implements Exporter<T> {

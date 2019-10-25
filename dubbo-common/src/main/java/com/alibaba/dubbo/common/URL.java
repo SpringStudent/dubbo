@@ -1209,7 +1209,11 @@ public final class URL implements Serializable {
         return new InetSocketAddress(host, port);
     }
 
+    /**
+     * group/interface:version
+     */
     public String getServiceKey() {
+        //获取interface名称
         String inf = getServiceInterface();
         if (inf == null) return null;
         StringBuilder buf = new StringBuilder();

@@ -130,6 +130,8 @@ public class ZookeeperRegistry extends FailbackRegistry {
     protected void doRegister(URL url) {
         try {
             //创建URL节点
+            //通过 Zookeeper 客户端创建节点，节点路径由 toUrlPath 方法生成，路径格式如下:
+            ///${group}/${serviceInterface}/providers/${url}
             zkClient.create(toUrlPath(url), url.getParameter(Constants.DYNAMIC_KEY, true));
         } catch (Throwable e) {
             throw new RpcException("Failed to register " + url + " to zookeeper " + getUrl() + ", cause: " + e.getMessage(), e);
@@ -196,7 +198,12 @@ public class ZookeeperRegistry extends FailbackRegistry {
             } else {
                 //处理消费者的订阅请求
                 List<URL> urls = new ArrayList<URL>();
-                //获取url的所有费类型后
+                //获取url的所有类型后
+
+                //url
+                //url（overrideSubscribeUrl）：provider://10.10.10.10:20880/com.alibaba.dubbo.demo.DemoService?
+                // anyhost=true&application=demo-provider&category=configurators&check=false&dubbo=2.0.0&generic=false&
+                // interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello&pid=9544&side=provider&timestamp=1507643800076
                 for (String path : toCategoriesPath(url)) {
                     ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
                     if (listeners == null) {
@@ -294,7 +301,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
         }
         String[] paths = new String[categories.length];
         for (int i = 0; i < categories.length; i++) {
-            paths[i] = toServicePath(url) + Constants.PATH_SEPARATOR + categories[i];
+            paths[i] = toServicePath(url) + Constants.PATH_SEPARATOR + categories[i];///dubbo/com.alibaba.dubbo.demo.DemoService/configurators
         }
         return paths;
     }

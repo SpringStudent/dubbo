@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * AbstractServiceConfig
+ * 服务相关属性(重在使用运维级别)
  *
  * @export
  */
@@ -92,6 +92,9 @@ public abstract class AbstractServiceConfig extends AbstractInterfaceConfig {
      * 设为true，将向logger中输出访问日志，也可填写访问日志文件路径，直接把访问日志输出到指定文件
      */
     protected String accesslog;
+    /**
+     * 协议配置
+     */
     protected List<ProtocolConfig> protocols;
     // max allowed execute times
     /**

@@ -53,17 +53,21 @@ public abstract class AbstractZookeeperClient<TargetChildListener> implements Zo
     @Override
     public void create(String path, boolean ephemeral) {
         if (!ephemeral) {
+            // 如果要创建的节点类型非临时节点，那么这里要检测节点是否存在
             if (checkExists(path)) {
                 return;
             }
         }
         int i = path.lastIndexOf('/');
         if (i > 0) {
+            //递归创建父节点
             create(path.substring(0, i), false);
         }
         if (ephemeral) {
+            //创建临时节点
             createEphemeral(path);
         } else {
+            //创建持久节点
             createPersistent(path);
         }
     }

@@ -62,6 +62,7 @@ public abstract class AbstractRegistry implements Registry {
     // Log output
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     // Local disk cache, where the special key value.registies records the list of registry centers, and the others are the list of notified service providers
+    //本地磁盘缓存，其中特殊键value.registies记录注册表中心列表，其他是已通知服务提供商的列表
     private final Properties properties = new Properties();
     // File cache timing writing
     private final ExecutorService registryCacheExecutor = Executors.newFixedThreadPool(1, new NamedThreadFactory("DubboSaveRegistryCache", true));
@@ -297,7 +298,7 @@ public abstract class AbstractRegistry implements Registry {
         if (logger.isInfoEnabled()) {
             logger.info("Subscribe: " + url);
         }
-        Set<NotifyListener> listeners = subscribed.get(url);
+        Set<NotifyListener> listeners = subscribed.get(url);//provider://169.254.22.149:20880/com.alibaba.dubbo.study.day01.xml.service.EchoService?anyhost=true&application=echo-provider&bean.name=com.alibaba.dubbo.study.day01.xml.service.EchoService&category=configurators&check=false&dubbo=2.0.2&generic=false&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo&pid=3720&side=provider&timestamp=1571881716824
         if (listeners == null) {
             subscribed.putIfAbsent(url, new ConcurrentHashSet<NotifyListener>());
             listeners = subscribed.get(url);

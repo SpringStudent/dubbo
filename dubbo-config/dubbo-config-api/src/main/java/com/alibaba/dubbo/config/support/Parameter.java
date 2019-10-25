@@ -34,6 +34,10 @@ public @interface Parameter {
 
     boolean required() default false;
 
+    /**
+     * 排除
+     * @return
+     */
     boolean excluded() default false;
 
     boolean escaped() default false;

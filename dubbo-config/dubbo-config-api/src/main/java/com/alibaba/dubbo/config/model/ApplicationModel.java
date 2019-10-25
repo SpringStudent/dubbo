@@ -29,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 // TODO need to adjust project structure in order to fully utilize the methods introduced here.
+
+//TODO需要调整项目结构，以充分利用此处介绍的方法
 public class ApplicationModel {
 
     protected static final Logger logger = LoggerFactory.getLogger(ApplicationModel.class);

@@ -34,6 +34,6 @@
     <bean id="echoService" class="com.alibaba.dubbo.study.day01.xml.service.EchoServiceImpl"/>
 
     <!-- declare the service interface to be exported -->
-    <dubbo:service interface="com.alibaba.dubbo.study.day01.xml.service.EchoService" ref="echoService" />
+    <dubbo:service interface="com.alibaba.dubbo.study.day01.xml.service.EchoService" ref="echoService"/>
 
 </beans>

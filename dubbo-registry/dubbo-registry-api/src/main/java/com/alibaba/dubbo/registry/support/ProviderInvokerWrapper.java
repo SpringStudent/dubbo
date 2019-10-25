@@ -24,6 +24,7 @@ import com.alibaba.dubbo.rpc.RpcException;
 
 /**
  * @date 2017/11/23
+ * 提供者invoker包装
  */
 public class ProviderInvokerWrapper<T> implements Invoker {
     private Invoker<T> invoker;

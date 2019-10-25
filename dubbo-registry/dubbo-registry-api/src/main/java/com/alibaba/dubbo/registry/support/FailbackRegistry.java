@@ -129,16 +129,20 @@ public abstract class FailbackRegistry extends AbstractRegistry {
 
     @Override
     public void register(URL url) {
+        //父类方法实现将该url添加到registered集合中
         super.register(url);
+        //一处该url
         failedRegistered.remove(url);
         failedUnregistered.remove(url);
         try {
             // Sending a registration request to the server side
+            // 委托给子类实现
             doRegister(url);
         } catch (Exception e) {
             Throwable t = e;
 
             // If the startup detection is opened, the Exception is thrown directly.
+            // 如果启动检测已打开，则直接引发Exception。如果check是true直接引发一场
             boolean check = getUrl().getParameter(Constants.CHECK_KEY, true)
                     && url.getParameter(Constants.CHECK_KEY, true)
                     && !Constants.CONSUMER_PROTOCOL.equals(url.getProtocol());
@@ -153,6 +157,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             }
 
             // Record a failed registration request to a failed list, retry regularly
+            //记录注册失败的url
             failedRegistered.add(url);
         }
     }
@@ -164,6 +169,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
         failedUnregistered.remove(url);
         try {
             // Sending a cancellation request to the server side
+            //发送取消请求到服务器端
             doUnregister(url);
         } catch (Exception e) {
             Throwable t = e;
@@ -189,20 +195,24 @@ public abstract class FailbackRegistry extends AbstractRegistry {
 
     @Override
     public void subscribe(URL url, NotifyListener listener) {
+        //将当前url对应的Listener放入缓存集合
         super.subscribe(url, listener);
+        //从failedSubscribed／failedUnsubscribed集合中删除该OverrideListener
         removeFailedSubscribed(url, listener);
         try {
             // Sending a subscription request to the server side
+            //发送订阅请求到服务器端
             doSubscribe(url, listener);
         } catch (Exception e) {
             Throwable t = e;
-
+            //获取该url对应的缓存url TODO 不知道做什么的
             List<URL> urls = getCacheUrls(url);
             if (urls != null && !urls.isEmpty()) {
                 notify(url, listener, urls);
                 logger.error("Failed to subscribe " + url + ", Using cached list: " + urls + " from cache file: " + getUrl().getParameter(Constants.FILE_KEY, System.getProperty("user.home") + "/dubbo-registry-" + url.getHost() + ".cache") + ", cause: " + t.getMessage(), t);
             } else {
                 // If the startup detection is opened, the Exception is thrown directly.
+                //如果开启了check = true，直接抛出异常
                 boolean check = getUrl().getParameter(Constants.CHECK_KEY, true)
                         && url.getParameter(Constants.CHECK_KEY, true);
                 boolean skipFailback = t instanceof SkipFailbackWrapperException;

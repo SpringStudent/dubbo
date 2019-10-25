@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * AbstractDefaultConfig
+ * 封装了接口契约需要的属性
  *
  * @export
  */
@@ -66,7 +66,10 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
      */
     protected String stub;
 
-    // service monitor
+    // 监控配置
+    /**
+     * 监控中心配置
+     */
     protected MonitorConfig monitor;
 
     // proxy type
@@ -115,28 +118,51 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     protected String layer;
 
     // application info
+    /**
+     * 应用信息配置
+     */
     protected ApplicationConfig application;
 
     // module info
+    /**
+     * 模块信息配置
+     */
     protected ModuleConfig module;
 
     // registry centers
+    /**
+     * 注册中心配置
+     */
     protected List<RegistryConfig> registries;
 
     // connection events
+    /**
+     * 连接事件
+     */
     protected String onconnect;
 
     // disconnection events
+    /**
+     * 断开连接事件
+     */
     protected String ondisconnect;
 
     // callback limits
+    /**
+     * callback实例个数限制
+     */
     private Integer callbacks;
 
     // the scope for referring/exporting a service, if it's local, it means searching in current JVM only.
+    /**
+     * 服务暴露或引用的scope,如果为local，则表示只在当前JVM内查找
+     */
     private String scope;
 
     protected void checkRegistry() {
-        // for backward compatibility
+        //为了 向后兼容
+        //判断尅有registries配置没有的话，从配置文件中读取
+        //并创建registries
         if (registries == null || registries.isEmpty()) {
             String address = ConfigUtils.getProperty("dubbo.registry.address");
             if (address != null && address.length() > 0) {
@@ -149,6 +175,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                 }
             }
         }
+        //注册中心没有配置抛出异常好了
         if ((registries == null || registries.isEmpty())) {
             throw new IllegalStateException((getClass().getSimpleName().startsWith("Reference")
                     ? "No such any registry to refer service in consumer "
@@ -158,15 +185,20 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                     + Version.getVersion()
                     + ", Please add <dubbo:registry address=\"...\" /> to your spring config. If you want unregister, please set <dubbo:service registry=\"N/A\" />");
         }
+        //通过appendProperties方法添加系统环境中的注册中心的其他配置
         for (RegistryConfig registryConfig : registries) {
             appendProperties(registryConfig);
         }
     }
 
     @SuppressWarnings("deprecation")
+    /**
+     * 检查applicationConfig
+     */
     protected void checkApplication() {
-        // for backward compatibility
+        // 为了向后兼容
         if (application == null) {
+            //获取配置文件中的dubbo.application.name配置
             String applicationName = ConfigUtils.getProperty("dubbo.application.name");
             if (applicationName != null && applicationName.length() > 0) {
                 application = new ApplicationConfig();
@@ -176,8 +208,9 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
             throw new IllegalStateException(
                     "No such application config! Please add <dubbo:application name=\"...\" /> to your spring config.");
         }
+        //通过系统变量为applicationConfig赋值
         appendProperties(application);
-
+        //通过配置文件设置SHUTDOWN_WAIT_KEY或者SHUTDOWN_WAIT_SECONDS_KEY系统变量
         String wait = ConfigUtils.getProperty(Constants.SHUTDOWN_WAIT_KEY);
         if (wait != null && wait.trim().length() > 0) {
             System.setProperty(Constants.SHUTDOWN_WAIT_KEY, wait.trim());
@@ -190,28 +223,39 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     }
 
     protected List<URL> loadRegistries(boolean provider) {
+        //检测注册中心配置尅对
         checkRegistry();
+
         List<URL> registryList = new ArrayList<URL>();
         if (registries != null && !registries.isEmpty()) {
+            //遍历所有注册中心
             for (RegistryConfig config : registries) {
+                //注册中心的地址
                 String address = config.getAddress();
+                //若 address 为空，则将其设为 0.0.0.0
                 if (address == null || address.length() == 0) {
                     address = Constants.ANYHOST_VALUE;
                 }
+                //从系统属性中加载注册中心地址
                 String sysaddress = System.getProperty("dubbo.registry.address");
                 if (sysaddress != null && sysaddress.length() > 0) {
                     address = sysaddress;
                 }
+                //
                 if (address.length() > 0 && !RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
                     Map<String, String> map = new HashMap<String, String>();
+                    // 添加 ApplicationConfig 中的字段信息到 map 中
                     appendParameters(map, application);
+                    // 添加 RegistryConfig 字段信息到 map 中
                     appendParameters(map, config);
+                    //添加path dubbo timestamp pid protocol属性到map中
                     map.put("path", RegistryService.class.getName());
                     map.put("dubbo", Version.getProtocolVersion());
                     map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
                     if (ConfigUtils.getPid() > 0) {
                         map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
                     }
+                    //如果还没有定义protocol
                     if (!map.containsKey("protocol")) {
                         if (ExtensionLoader.getExtensionLoader(RegistryFactory.class).hasExtension("remote")) {
                             map.put("protocol", "remote");
@@ -219,10 +263,15 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                             map.put("protocol", "dubbo");
                         }
                     }
+                    //解析得到一个URL列表，这是因为address可能是","分隔的多个地址
                     List<URL> urls = UrlUtils.parseURLs(address, map);
                     for (URL url : urls) {
                         url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
+                        //将URL协议头设置为registry
                         url = url.setProtocol(Constants.REGISTRY_PROTOCOL);
+                        //判断url是否添加到url registryList中
+                        //(服务提供者 && register = true 或 null)
+                        // || (非服务提供者 && subscribe = true 或 null)
                         if ((provider && url.getParameter(Constants.REGISTER_KEY, true))
                                 || (!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))) {
                             registryList.add(url);
@@ -233,6 +282,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
         return registryList;
     }
+
 
     protected URL loadMonitor(URL registryURL) {
         if (monitor == null) {
@@ -290,20 +340,25 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     protected void checkInterfaceAndMethods(Class<?> interfaceClass, List<MethodConfig> methods) {
         // interface cannot be null
+        //接口不能为null啊老铁
         if (interfaceClass == null) {
             throw new IllegalStateException("interface not allow null!");
         }
         // to verify interfaceClass is an interface
+        // interfaceClass并不是接口
         if (!interfaceClass.isInterface()) {
             throw new IllegalStateException("The interface class " + interfaceClass + " is not a interface!");
         }
         // check if methods exist in the interface
+        //检查方法列表是否都存在与接口里
         if (methods != null && !methods.isEmpty()) {
             for (MethodConfig methodBean : methods) {
+                //methodName为空卧槽
                 String methodName = methodBean.getName();
                 if (methodName == null || methodName.length() == 0) {
                     throw new IllegalStateException("<dubbo:method> name attribute is required! Please check: <dubbo:service interface=\"" + interfaceClass.getName() + "\" ... ><dubbo:method name=\"\" ... /></<dubbo:reference>");
                 }
+                //判断接口里尅有方法
                 boolean hasMethod = false;
                 for (java.lang.reflect.Method method : interfaceClass.getMethods()) {
                     if (method.getName().equals(methodName)) {
@@ -320,12 +375,15 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     }
 
     void checkMock(Class<?> interfaceClass) {
+        //如果mock属性为null
         if (ConfigUtils.isEmpty(mock)) {
             return;
         }
-
+        //归一化mock字符串
         String normalizedMock = MockInvoker.normalizeMock(mock);
+        //如果以return开始
         if (normalizedMock.startsWith(Constants.RETURN_PREFIX)) {
+            //截取return后面的字符串
             normalizedMock = normalizedMock.substring(Constants.RETURN_PREFIX.length()).trim();
             try {
                 MockInvoker.parseMockValue(normalizedMock);

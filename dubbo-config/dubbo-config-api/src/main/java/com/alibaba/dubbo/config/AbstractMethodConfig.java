@@ -23,7 +23,7 @@ import com.alibaba.dubbo.rpc.cluster.LoadBalance;
 import java.util.Map;
 
 /**
- * 方法级配置。对应的配置类：
+ * 封装了一些方法级别的相关属性：
  * 同时该标签为 <dubbo:service> 或 <dubbo:reference> 的子标签，用于控制到方法级。
  * @export
  */
@@ -68,6 +68,9 @@ public abstract class AbstractMethodConfig extends AbstractConfig {
     protected Boolean sent;
 
     // the name of mock class which gets called when a service fails to execute
+    /**
+     * 服务执行失败时调用的模拟类的名称
+     */
     protected String mock;
 
     // merger

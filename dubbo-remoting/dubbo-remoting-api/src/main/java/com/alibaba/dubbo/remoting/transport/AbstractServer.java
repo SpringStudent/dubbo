@@ -57,7 +57,9 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
             bindIp = NetUtils.ANYHOST;
         }
         bindAddress = new InetSocketAddress(bindIp, bindPort);
+        //设置可接受最大连接数
         this.accepts = url.getParameter(Constants.ACCEPTS_KEY, Constants.DEFAULT_ACCEPTS);
+        //连接空闲时间
         this.idleTimeout = url.getParameter(Constants.IDLE_TIMEOUT_KEY, Constants.DEFAULT_IDLE_TIMEOUT);
         try {
             doOpen();

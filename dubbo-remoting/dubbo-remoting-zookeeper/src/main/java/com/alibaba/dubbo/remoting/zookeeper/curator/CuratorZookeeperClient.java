@@ -48,15 +48,19 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient<CuratorWatch
         super(url);
         try {
             int timeout = url.getParameter(Constants.TIMEOUT_KEY, 5000);
+            // 创建 CuratorFramework 构造器
             CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                     .connectString(url.getBackupAddress())
                     .retryPolicy(new RetryNTimes(1, 1000))
                     .connectionTimeoutMs(timeout);
+            //zookeeper的权限新
             String authority = url.getAuthority();
             if (authority != null && authority.length() > 0) {
                 builder = builder.authorization("digest", authority.getBytes());
             }
+            // 构建 CuratorFramework 实例
             client = builder.build();
+            // 添加client监听器
             client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
                 @Override
                 public void stateChanged(CuratorFramework client, ConnectionState state) {
