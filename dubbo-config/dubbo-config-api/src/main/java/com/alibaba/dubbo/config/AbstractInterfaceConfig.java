@@ -223,7 +223,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     }
 
     protected List<URL> loadRegistries(boolean provider) {
-        //检测注册中心配置尅对
+        //检测注册中心配置
         checkRegistry();
 
         List<URL> registryList = new ArrayList<URL>();
@@ -241,7 +241,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                 if (sysaddress != null && sysaddress.length() > 0) {
                     address = sysaddress;
                 }
-                //
+                //注册中心地址不是N/A
                 if (address.length() > 0 && !RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
                     Map<String, String> map = new HashMap<String, String>();
                     // 添加 ApplicationConfig 中的字段信息到 map 中
@@ -263,12 +263,13 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                             map.put("protocol", "dubbo");
                         }
                     }
-                    //解析得到一个URL列表，这是因为address可能是","分隔的多个地址
+                    //解析得到一个URL列表，这是因为address可能是";"分隔的多个地址
+                    //zookeeper://192.168.1.233:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&dubbo=2.0.2&pid=6696&timestamp=1571986235561
                     List<URL> urls = UrlUtils.parseURLs(address, map);
                     for (URL url : urls) {
                         url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
                         //将URL协议头设置为registry
-                        url = url.setProtocol(Constants.REGISTRY_PROTOCOL);
+                        url = url.setProtocol(Constants.REGISTRY_PROTOCOL);//registry://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&dubbo=2.0.2&pid=14308&registry=zookeeper&timestamp=1571986326534
                         //判断url是否添加到url registryList中
                         //(服务提供者 && register = true 或 null)
                         // || (非服务提供者 && subscribe = true 或 null)

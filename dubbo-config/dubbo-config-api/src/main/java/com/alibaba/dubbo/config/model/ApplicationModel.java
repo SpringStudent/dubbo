@@ -37,6 +37,7 @@ public class ApplicationModel {
 
     /**
      * full qualified class name -> provided service
+     *
      */
     private static final ConcurrentMap<String, ProviderModel> providedServices = new ConcurrentHashMap<String, ProviderModel>();
     /**

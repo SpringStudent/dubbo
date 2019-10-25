@@ -239,9 +239,11 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     protected synchronized void doExport() {
+        //已取消导出判断
         if (unexported) {
             throw new IllegalStateException("Already unexported!");
         }
+        //导出过了判断
         if (exported) {
             return;
         }
@@ -253,7 +255,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         //如果provider为空，为空则新建一个，并通过系统变量为其初始化
         checkDefault();
         /**
-         * registries,monitor的优先级配置providerConfig>ModuleConfig>ApplicationConfig
+         * registries,monitor的优先级配置ProviderConfig>ModuleConfig>ApplicationConfig>
          */
         if (provider != null) {
             if (application == null) {

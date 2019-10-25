@@ -96,6 +96,7 @@ public abstract class AbstractConfig implements Serializable {
         if (config == null) {
             return;
         }
+        //前缀为dubbo.provider.
         String prefix = "dubbo." + getTagName(config.getClass()) + ".";
         //获取配置类的所有方法
         Method[] methods = config.getClass().getMethods();
@@ -105,7 +106,7 @@ public abstract class AbstractConfig implements Serializable {
                 //set方法、public的，只有一个参数，参数必须为基本类型
                 if (name.length() > 3 && name.startsWith("set") && Modifier.isPublic(method.getModifiers())
                         && method.getParameterTypes().length == 1 && isPrimitive(method.getParameterTypes()[0])) {
-                    //属性名称
+                    //属性名称比如host path
                     String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), ".");
 
                     String value = null;
