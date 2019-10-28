@@ -518,6 +518,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 map.put("revision", revision);
             }
             //为接口生成包裹类 Wrapper，Wrapper 中包含了接口的详细信息，比如接口方法名数组，字段信息等
+            ////获取包装类,包装类实质上就是通过javassist生成的类，当我们通过包装类对角调dubbo接口时实际调的还是接口对象的原有方法。
+            // 此处包装起到的作用无非是可以以统一的代码的去调用用户提供的不同的dubbo接口
             String[] methods = Wrapper.getWrapper(interfaceClass).getMethodNames();
             if (methods.length == 0) {
                 logger.warn("NO method found in service interface " + interfaceClass.getName());
@@ -538,6 +540,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
         //判断协议名称是否为injvm
         if (Constants.LOCAL_PROTOCOL.equals(protocolConfig.getName())) {
+            //注册到注册中心参数设置为false
             protocolConfig.setRegister(false);
             map.put("notify", "false");
         }
@@ -559,7 +562,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                     .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
         }
-        //获取scope
+        //获取scope属性，scope属性决定服务是否暴露本地、不暴露、远程
         String scope = url.getParameter(Constants.SCOPE_KEY);
         //当scope=none 什么都不做
         if (!Constants.SCOPE_NONE.toString().equalsIgnoreCase(scope)) {
