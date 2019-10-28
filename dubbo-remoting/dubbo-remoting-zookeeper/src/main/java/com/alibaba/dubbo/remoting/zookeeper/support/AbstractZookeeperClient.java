@@ -86,6 +86,20 @@ public abstract class AbstractZookeeperClient<TargetChildListener> implements Zo
         return stateListeners;
     }
 
+    /**
+     * 根据path从ConcurrentMap<String, ConcurrentMap<ChildListener, TargetChildListener>> childListeners
+     * 获取ConcurrentMap<ChildListener, TargetChildListener>，没有就创建
+     *
+     * 根据ChildListener获取TargetChildListener，没有就创建，TargetChildListener是真正的监听path的子节点变化的监听器
+     * createTargetChildListener(String path, final ChildListener listener)：创建一个真正的用来执行当path节点的子节点发生变化时的逻辑
+     *
+     * addTargetChildListener(path, targetListener)：将刚刚创建出来的子节点监听器订阅path的变化，这样之后，path的子节点发生了变化时
+     * ，TargetChildListener才会执行相应的逻辑。而实际上TargetChildListener又会调用ChildListener的实现类的childChanged(String parentPath,
+     * List<String> currentChilds)方法，而该实现类，正好是ZookeeperRegistry中实现的匿名内部类，
+     * 在该匿名内部类的childChanged(String parentPath, List<String> currentChilds)方法中，
+     * 调用了ZookeeperRegistry.notify(URL url, NotifyListener listener, List<URL> urls)
+     *
+     */
     @Override
     public List<String> addChildListener(String path, final ChildListener listener) {
         ConcurrentMap<ChildListener, TargetChildListener> listeners = childListeners.get(path);

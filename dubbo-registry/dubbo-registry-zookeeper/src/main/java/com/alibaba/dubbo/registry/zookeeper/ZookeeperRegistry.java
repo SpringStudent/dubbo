@@ -196,6 +196,9 @@ public class ZookeeperRegistry extends FailbackRegistry {
                     }
                 }
             } else {
+                /**
+                 * https://www.cnblogs.com/java-zhao/p/7632929.html 参考分析
+                 */
                 //处理消费者的订阅请求
                 List<URL> urls = new ArrayList<URL>();
                 //获取url的所有类型后
@@ -220,7 +223,9 @@ public class ZookeeperRegistry extends FailbackRegistry {
                         });
                         zkListener = listeners.get(listener);
                     }
+                    //创建持久化节点创建持久化节点/dubbo/com.alibaba.dubbo.demo.DemoService/configurators
                     zkClient.create(path, false);
+                    //监听/dubbo/com.alibaba.dubbo.demo.DemoService/configurators节点
                     List<String> children = zkClient.addChildListener(path, zkListener);
                     if (children != null) {
                         urls.addAll(toUrlsWithEmpty(url, path, children));
@@ -314,6 +319,12 @@ public class ZookeeperRegistry extends FailbackRegistry {
         return toCategoryPath(url) + Constants.PATH_SEPARATOR + URL.encode(url.toFullString());
     }
 
+    /**
+     * 遍历providers集合
+     * 1.首先判断provider是否包含"://"字符串
+     * 2.然后匹配interfaceClass ,categroy,group,version,classifier
+     * 3.匹配成功provider的加入到urls
+     */
     private List<URL> toUrlsWithoutEmpty(URL consumer, List<String> providers) {
         List<URL> urls = new ArrayList<URL>();
         if (providers != null && !providers.isEmpty()) {
@@ -330,6 +341,18 @@ public class ZookeeperRegistry extends FailbackRegistry {
         return urls;
     }
 
+    /**
+     *1.首先过滤出providers中与consumer匹配的providerUrl集合
+     *2.如果providerUrl集合不为空，直接返回这个集合
+     *3. 如果为空，首先从path中获取category，然后将consumer的协议换成empty，添加参数category=configurators
+     *
+     * @param consumer  provider://10.10.10.10:20880/com.alibaba.dubbo.demo.DemoService?
+     *                  anyhost=true&application=demo-provider&category=configurators&check=false&dubbo=2.0.0
+     *                  &generic=false&interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello&pid=9544
+     *                  &side=provider&timestamp=1507643800076
+     * @param path      /dubbo/com.alibaba.dubbo.demo.DemoService/configurators
+     * @param providers
+     */
     private List<URL> toUrlsWithEmpty(URL consumer, String path, List<String> providers) {
         List<URL> urls = toUrlsWithoutEmpty(consumer, providers);
         if (urls == null || urls.isEmpty()) {

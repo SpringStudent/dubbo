@@ -388,6 +388,8 @@ public abstract class AbstractRegistry implements Registry {
             logger.info("Notify urls for subscribe url " + url + ", urls: " + urls);
         }
         Map<String, List<URL>> result = new HashMap<String, List<URL>>();
+        //将匹配的urls按category分类保存到Map中
+        //key-categroyName value-List<URL>
         for (URL u : urls) {
             if (UrlUtils.isMatch(url, u)) {
                 String category = u.getParameter(Constants.CATEGORY_KEY, Constants.DEFAULT_CATEGORY);
@@ -402,16 +404,26 @@ public abstract class AbstractRegistry implements Registry {
         if (result.size() == 0) {
             return;
         }
+        //获取url（overrideSubscribeUrl）：provider://10.10.10.10:20880/com.alibaba.dubbo.demo.DemoService?
+        // anyhost=true&application=demo-provider&category=configurators&check=false&dubbo=2.0.0&generic=false&
+        // interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello&pid=9544&side=provider&timestamp=1507643800076
+        //对应的通知过的YRL集合
         Map<String, List<URL>> categoryNotified = notified.get(url);
         if (categoryNotified == null) {
             notified.putIfAbsent(url, new ConcurrentHashMap<String, List<URL>>());
             categoryNotified = notified.get(url);
         }
+        //遍历上述方法创建的map key-categroyName value-List<URL>集合
         for (Map.Entry<String, List<URL>> entry : result.entrySet()) {
+            //categroy
             String category = entry.getKey();
+            //该分类对应的url
             List<URL> categoryList = entry.getValue();
+            //放入到map中
             categoryNotified.put(category, categoryList);
+            //保存到本地磁盘缓存中
             saveProperties(url);
+            //调用传入的listener的notify方法（注意：这里调用的正是文章开头创建的overrideSubscribeListener实例的notify方法）
             listener.notify(categoryList);
         }
     }
@@ -422,6 +434,10 @@ public abstract class AbstractRegistry implements Registry {
         }
 
         try {
+            /**
+             * 从将ConcurrentMap<URL, Map<String, List<URL>>> notified中将Map<String, List<URL>>拿出来，
+             * 之后将所有category的list组成一串buf（以空格分隔）
+             */
             StringBuilder buf = new StringBuilder();
             Map<String, List<URL>> categoryNotified = notified.get(url);
             if (categoryNotified != null) {
@@ -434,11 +450,16 @@ public abstract class AbstractRegistry implements Registry {
                     }
                 }
             }
+            /**
+             * 保存到properties文件中
+             */
             properties.setProperty(url.getServiceKey(), buf.toString());
             long version = lastCacheChanged.incrementAndGet();
+            //同步提交
             if (syncSaveFile) {
                 doSaveProperties(version);
             } else {
+                //异步提交
                 registryCacheExecutor.execute(new SaveProperties(version));
             }
         } catch (Throwable t) {

@@ -198,7 +198,7 @@ public class RegistryProtocol implements Protocol {
     }
 
     /**
-     * Reexport the invoker of the modified url
+     * 对修改了url的invoker重新export
      *
      * @param originInvoker
      * @param newInvokerUrl
@@ -408,31 +408,40 @@ public class RegistryProtocol implements Protocol {
             List<URL> matchedUrls = getMatchedUrls(urls, subscribeUrl);
             logger.debug("subscribe url: " + subscribeUrl + ", override urls: " + matchedUrls);
             // No matching results
+            //如果没有匹配成功
             if (matchedUrls.isEmpty()) {
                 return;
             }
 
             List<Configurator> configurators = RegistryDirectory.toConfigurators(matchedUrls);
-
+            //获取invoker
             final Invoker<?> invoker;
             if (originInvoker instanceof InvokerDelegete) {
                 invoker = ((InvokerDelegete<?>) originInvoker).getInvoker();
             } else {
                 invoker = originInvoker;
             }
-            //The origin invoker
+            ////dubbo://10.10.10.10:20880/com.alibaba.dubbo.demo.DemoService?anyhost=true&application=demo-provider&dubbo=2.0.0&
+            // generic=false&interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello&pid=5279&side=provider&timestamp=1507723571451
             URL originUrl = RegistryProtocol.this.getProviderUrl(invoker);
+            ////dubbo://10.10.10.10:20880/com.alibaba.dubbo.demo.DemoService?anyhost=true&application=demo-provider&
+            // dubbo=2.0.0&generic=false&interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello&pid=5279&
+            // side=provider&timestamp=1507723571451
             String key = getCacheKey(originInvoker);
+            //根据key获取doLocalExport返回的Exporter
             ExporterChangeableWrapper<?> exporter = bounds.get(key);
             if (exporter == null) {
                 logger.warn(new IllegalStateException("error state, exporter should not be null"));
                 return;
             }
             //The current, may have been merged many times
+            //获取exporter封装的invoker的url
             URL currentUrl = exporter.getInvoker().getUrl();
             //Merged with this configuration
+            //使用configurators对originUrl进行merge操作
             URL newUrl = getConfigedInvokerUrl(configurators, originUrl);
             if (!currentUrl.equals(newUrl)) {
+                ////重新将invoker暴露为exporter
                 RegistryProtocol.this.doChangeLocalExport(originInvoker, newUrl);
                 logger.info("exported provider url changed, origin url: " + originUrl + ", old export url: " + currentUrl + ", new export url: " + newUrl);
             }
