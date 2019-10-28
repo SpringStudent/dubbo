@@ -177,6 +177,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         return provider;
     }
 
+
     private static Integer getRandomPort(String protocol) {
         protocol = protocol.toLowerCase();
         if (RANDOM_PORT_MAP.containsKey(protocol)) {
@@ -436,7 +437,17 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         appendParameters(map, provider, Constants.DEFAULT_KEY);
         appendParameters(map, protocolConfig);
         appendParameters(map, this);
-        //methods存储了通过解析<dubbo:method标签配置的信息
+        //methods存储了通过解析<dubbo:method标签配置的信息和<dubbo:argument配置的信息
+        /**
+         * <dubbo:method name="addListener" retries="2">
+         *             <!--<dubbo:argument index="1" callback="true"/>-->
+         *             <!--也可以通过指定类型的方式-->
+         *             <dubbo:argument type="com.alibaba.dubbo.study.day03.callback.CallbackListener" callback="true" />
+         *         </dubbo:method>
+         * 解析这种配置并存入到map中
+         * addListener.retries=2
+         * addListener.1.callback=true
+         */
         if (methods != null && !methods.isEmpty()) {
             for (MethodConfig method : methods) {
                 appendParameters(map, method, method.getName());
@@ -554,6 +565,11 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         String host = this.findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = this.findConfigedPorts(protocolConfig, name, map);
         //组装url emmm
+        //dubbo://169.254.22.149:20880/com.alibaba.dubbo.study.day01.xml.service.EchoService?
+        // addListener.1.callback=true&addListener.retries=2&anyhost=true&application=echo-provider
+        // &bean.name=com.alibaba.dubbo.study.day01.xml.service.EchoService&bind.ip=169.254.22.149&bind.port=20880
+        // &dubbo=2.0.2&generic=false&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService
+        // &methods=echo,addListener&pid=4456&side=provider&timestamp=1572244285807
         URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
         //spi 判断是否有url.getProtocol
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
@@ -585,6 +601,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                         //加载监视器连接
                         URL monitorUrl = loadMonitor(registryURL);
                         if (monitorUrl != null) {
+                            //给url添加key=monitoUrl
                             //添加监视器配置
                             url = url.addParameterAndEncoded(Constants.MONITOR_KEY, monitorUrl.toFullString());
                         }
@@ -594,16 +611,18 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
                         // For providers, this is used to enable custom proxy to generate invoker
 
-                        // 获取proxy属性
+                        // 获取proxy属性,创建代理的方式javaassit或者jdkproxy
                         String proxy = url.getParameter(Constants.PROXY_KEY);
                         if (StringUtils.isNotEmpty(proxy)) {
                             registryURL = registryURL.addParameter(Constants.PROXY_KEY, proxy);
                         }
                         //为服务提供类(refer)生成Invoker
+                        //这里的proxyFactory为ProxyFactory$Adaptive
                         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
                         //使用DelegateProviderMetaDataInvoker封装生成的invoker和当前serviceCOnfig
                         DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
                         //导出服务，并生成 Exporter
+                        //调用Protocol$Adaptive类
                         Exporter<?> exporter = protocol.export(wrapperInvoker);
                         exporters.add(exporter);
                     }

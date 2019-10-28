@@ -43,11 +43,11 @@ public class EchoServiceImpl implements EchoService {
     @Override
     public void addListener(String key, CallbackListener listener) {
         listeners.put(key, listener);
-        listener.changed(getChanged(key)); // 发送变更通知
+        listener.changed("好吧"); // 发送变更通知
     }
 
     private String getChanged(String key) {
-        return "Changed: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        return key+": " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
     }
 
 }

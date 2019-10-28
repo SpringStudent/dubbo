@@ -38,7 +38,7 @@ public class QosProtocolWrapper implements Protocol {
     private final Logger logger = LoggerFactory.getLogger(QosProtocolWrapper.class);
 
     private static AtomicBoolean hasStarted = new AtomicBoolean(false);
-
+    //ProtocolFilterWrapper
     private Protocol protocol;
 
     public QosProtocolWrapper(Protocol protocol) {

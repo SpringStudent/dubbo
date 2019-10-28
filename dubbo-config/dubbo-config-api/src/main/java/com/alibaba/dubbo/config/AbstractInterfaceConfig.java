@@ -287,6 +287,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     protected URL loadMonitor(URL registryURL) {
         if (monitor == null) {
+            //加载monitor的配置地址
             String monitorAddress = ConfigUtils.getProperty("dubbo.monitor.address");
             String monitorProtocol = ConfigUtils.getProperty("dubbo.monitor.protocol");
             if ((monitorAddress == null || monitorAddress.length() == 0) && (monitorProtocol == null || monitorProtocol.length() == 0)) {
