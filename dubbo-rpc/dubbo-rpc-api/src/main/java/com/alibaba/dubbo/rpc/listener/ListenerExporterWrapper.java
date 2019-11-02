@@ -46,6 +46,7 @@ public class ListenerExporterWrapper<T> implements Exporter<T> {
             for (ExporterListener listener : listeners) {
                 if (listener != null) {
                     try {
+                        //调用listener的exported方法
                         listener.exported(this);
                     } catch (RuntimeException t) {
                         logger.error(t.getMessage(), t);
@@ -74,6 +75,7 @@ public class ListenerExporterWrapper<T> implements Exporter<T> {
                 for (ExporterListener listener : listeners) {
                     if (listener != null) {
                         try {
+                            //调用listener的unexported方法
                             listener.unexported(this);
                         } catch (RuntimeException t) {
                             logger.error(t.getMessage(), t);

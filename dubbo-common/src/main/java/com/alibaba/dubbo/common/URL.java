@@ -960,7 +960,8 @@ public final class URL implements Serializable {
         if (parameters == null || parameters.size() == 0) {
             return this;
         }
-
+        //判断当前URL实例的parameter是否与参数中的parameters
+        //是否相同，包括键和值，不全相同返回false
         boolean hasAndEqual = true;
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
             String value = getParameters().get(entry.getKey());
@@ -977,8 +978,9 @@ public final class URL implements Serializable {
             }
         }
         // return immediately if there's no change
+        //没有变化直接返回当前url
         if (hasAndEqual) return this;
-
+        //如果有变化合并并且返回新的map
         Map<String, String> map = new HashMap<String, String>(getParameters());
         map.putAll(parameters);
         return new URL(protocol, username, password, host, port, path, map);

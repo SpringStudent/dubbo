@@ -33,11 +33,17 @@ import com.alibaba.dubbo.remoting.transport.codec.CodecAdapter;
 public abstract class AbstractEndpoint extends AbstractPeer implements Resetable {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractEndpoint.class);
-
+    /**
+     * 编码解码器
+     */
     private Codec2 codec;
-
+    /**
+     *  超时时间
+     */
     private int timeout;
-
+    /**
+     * 连接超时时间
+     */
     private int connectTimeout;
 
     public AbstractEndpoint(URL url, ChannelHandler handler) {
@@ -59,6 +65,7 @@ public abstract class AbstractEndpoint extends AbstractPeer implements Resetable
 
     @Override
     public void reset(URL url) {
+        //判断是否关闭
         if (isClosed()) {
             throw new IllegalStateException("Failed to reset parameters "
                     + url + ", cause: Channel closed. channel: " + getLocalAddress());

@@ -25,11 +25,16 @@ import com.alibaba.dubbo.remoting.RemotingException;
 
 /**
  * AbstractPeer
+ * Server只需要用到URL中的参数，与具体某一个服务没什么关系。
  */
 public abstract class AbstractPeer implements Endpoint, ChannelHandler {
-
+    /**
+     * channel事件处理器
+     */
     private final ChannelHandler handler;
-
+    /**
+     * 第一个服务提供者协议的url地址
+     */
     private volatile URL url;
 
     // closing closed means the process is being closed and close is finished

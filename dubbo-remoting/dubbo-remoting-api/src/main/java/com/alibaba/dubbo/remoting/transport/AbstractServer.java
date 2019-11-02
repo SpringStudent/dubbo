@@ -42,9 +42,21 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
     protected static final String SERVER_THREAD_POOL_NAME = "DubboServerHandler";
     private static final Logger logger = LoggerFactory.getLogger(AbstractServer.class);
     ExecutorService executor;
+    /**
+     * url host:port地址。
+     */
     private InetSocketAddress localAddress;
+    /**
+     * 如果是多网卡，并且指定了 bind.ip、bind.port，如果为空，与localAddress相同。
+     */
     private InetSocketAddress bindAddress;
+    /**
+     *  AbstractServer#accepts未使用到。
+     */
     private int accepts;
+    /**
+     * 空闲时间
+     */
     private int idleTimeout = 600; //600 seconds
 
     public AbstractServer(URL url, ChannelHandler handler) throws RemotingException {
@@ -85,6 +97,7 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
             return;
         }
         try {
+            //url中是否包含accepts属性，存在并且大于0则重置Server的accepts
             if (url.hasParameter(Constants.ACCEPTS_KEY)) {
                 int a = url.getParameter(Constants.ACCEPTS_KEY, 0);
                 if (a > 0) {
@@ -95,6 +108,7 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
             logger.error(t.getMessage(), t);
         }
         try {
+            //url中是否包含idle.timeout属性，存在并且大于0则重置Server的idle.timeout
             if (url.hasParameter(Constants.IDLE_TIMEOUT_KEY)) {
                 int t = url.getParameter(Constants.IDLE_TIMEOUT_KEY, 0);
                 if (t > 0) {
@@ -105,11 +119,15 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
             logger.error(t.getMessage(), t);
         }
         try {
+            //url是否包含threads属性，并且executor是ThreadPoolExecutor的实例并且线程池未被关闭
             if (url.hasParameter(Constants.THREADS_KEY)
                     && executor instanceof ThreadPoolExecutor && !executor.isShutdown()) {
                 ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executor;
+                //url中的threads数量
                 int threads = url.getParameter(Constants.THREADS_KEY, 0);
+                //线程池最大容量
                 int max = threadPoolExecutor.getMaximumPoolSize();
+                //线程池核心线程数
                 int core = threadPoolExecutor.getCorePoolSize();
                 if (threads > 0 && (threads != max || threads != core)) {
                     if (threads < core) {
@@ -128,6 +146,7 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
         }
+        //合并url中的参数并设置给AbstractPeer的url属性
         super.setUrl(getUrl().addParameters(url.getParameters()));
     }
 

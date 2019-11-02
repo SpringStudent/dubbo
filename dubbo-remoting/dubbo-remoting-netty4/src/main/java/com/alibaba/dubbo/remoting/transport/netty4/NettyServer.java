@@ -51,14 +51,25 @@ import java.util.Map;
 public class NettyServer extends AbstractServer implements Server {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
-
+    /**
+     * < ip:port, channel> 所有通道。
+     */
     private Map<String, Channel> channels; // <ip:port, channel>
-
+    /**
+     * netty 服务端启动器。
+     */
     private ServerBootstrap bootstrap;
-
+    /**
+     * 服务端监听通道。
+     */
     private io.netty.channel.Channel channel;
-
+    /**
+     * Netty boss线程组（负责连接事件）
+     */
     private EventLoopGroup bossGroup;
+    /**
+     *  work线程组（负责IO事件）
+     */
     private EventLoopGroup workerGroup;
 
     public NettyServer(URL url, ChannelHandler handler) throws RemotingException {

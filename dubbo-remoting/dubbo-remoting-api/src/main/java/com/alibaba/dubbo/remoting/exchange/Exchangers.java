@@ -110,11 +110,13 @@ public class Exchangers {
     }
 
     public static Exchanger getExchanger(URL url) {
+        //获取url中的exchanger属性，没有使用默认的header
         String type = url.getParameter(Constants.EXCHANGER_KEY, Constants.DEFAULT_EXCHANGER);
         return getExchanger(type);
     }
 
     public static Exchanger getExchanger(String type) {
+        //dubbo的spi机制
         return ExtensionLoader.getExtensionLoader(Exchanger.class).getExtension(type);
     }
 
