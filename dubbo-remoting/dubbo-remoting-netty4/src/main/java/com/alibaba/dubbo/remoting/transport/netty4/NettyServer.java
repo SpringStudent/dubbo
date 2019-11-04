@@ -78,16 +78,19 @@ public class NettyServer extends AbstractServer implements Server {
 
     @Override
     protected void doOpen() throws Throwable {
+        //启动器
         bootstrap = new ServerBootstrap();
-
+        //Reactor线程模型之创建Selector用于不断监听Socket连接、客户端读写操作
         bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("NettyServerBoss", true));
+        //用一个线程池即workers，负责处理Selector派发的读写操作。
         workerGroup = new NioEventLoopGroup(getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),
                 new DefaultThreadFactory("NettyServerWorker", true));
-
+        //定义NettyServerHandler，处理客户端channel连接到服务端的相关事件，不动自行学习Netty
         final NettyServerHandler nettyServerHandler = new NettyServerHandler(getUrl(), this);
         channels = nettyServerHandler.getChannels();
-
+        //配置启动器
         bootstrap.group(bossGroup, workerGroup)
+                //指定服务端的channel类型
                 .channel(NioServerSocketChannel.class)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
                 .childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
@@ -95,14 +98,16 @@ public class NettyServer extends AbstractServer implements Server {
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel ch) throws Exception {
+                        //Netty编解码适配器
                         NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyServer.this);
+                        //添加编码、解码handler还有与业务有关的handler
                         ch.pipeline()//.addLast("logging",new LoggingHandler(LogLevel.INFO))//for debug
                                 .addLast("decoder", adapter.getDecoder())
                                 .addLast("encoder", adapter.getEncoder())
                                 .addLast("handler", nettyServerHandler);
                     }
                 });
-        // bind
+        //
         ChannelFuture channelFuture = bootstrap.bind(getBindAddress());
         channelFuture.syncUninterruptibly();
         channel = channelFuture.channel();

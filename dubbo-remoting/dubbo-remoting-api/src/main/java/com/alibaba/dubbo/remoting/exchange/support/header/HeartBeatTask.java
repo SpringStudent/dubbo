@@ -51,12 +51,19 @@ final class HeartBeatTask implements Runnable {
                     continue;
                 }
                 try {
+                    //channel上次读数据的时间戳
                     Long lastRead = (Long) channel.getAttribute(
                             HeaderExchangeHandler.KEY_READ_TIMESTAMP);
+                    //上次写数据的时间戳
                     Long lastWrite = (Long) channel.getAttribute(
                             HeaderExchangeHandler.KEY_WRITE_TIMESTAMP);
+                    //读的时间戳不为null并且空闲读时间大于心跳
                     if ((lastRead != null && now - lastRead > heartbeat)
+                            //写的时间戳不为null并且空闲写时间大于心跳
                             || (lastWrite != null && now - lastWrite > heartbeat)) {
+                        /**
+                         * 发送心跳数据
+                         */
                         Request req = new Request();
                         req.setVersion(Version.getProtocolVersion());
                         req.setTwoWay(true);
@@ -67,15 +74,18 @@ final class HeartBeatTask implements Runnable {
                                     + ", cause: The channel has no data-transmission exceeds a heartbeat period: " + heartbeat + "ms");
                         }
                     }
+                    //空闲读时间戳不为null并且空闲读大于心跳超时时间
                     if (lastRead != null && now - lastRead > heartbeatTimeout) {
                         logger.warn("Close channel " + channel
                                 + ", because heartbeat read idle time out: " + heartbeatTimeout + "ms");
+                        //channel是Client则重新连接
                         if (channel instanceof Client) {
                             try {
                                 ((Client) channel).reconnect();
                             } catch (Exception e) {
                                 //do nothing
                             }
+                        //否则关闭channel
                         } else {
                             channel.close();
                         }

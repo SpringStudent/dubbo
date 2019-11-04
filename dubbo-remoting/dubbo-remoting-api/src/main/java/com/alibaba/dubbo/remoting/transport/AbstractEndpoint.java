@@ -54,10 +54,13 @@ public abstract class AbstractEndpoint extends AbstractPeer implements Resetable
     }
 
     protected static Codec2 getChannelCodec(URL url) {
+        //获取url中的codec属性默认值为telnet
         String codecName = url.getParameter(Constants.CODEC_KEY, "telnet");
+        //如果Codec2的SPI实现类包含名称为codecName编解码器的扩展直接加载返回
         if (ExtensionLoader.getExtensionLoader(Codec2.class).hasExtension(codecName)) {
             return ExtensionLoader.getExtensionLoader(Codec2.class).getExtension(codecName);
         } else {
+            //加载Spi扩展Codec的名称为codecName的编解码器
             return new CodecAdapter(ExtensionLoader.getExtensionLoader(Codec.class)
                     .getExtension(codecName));
         }

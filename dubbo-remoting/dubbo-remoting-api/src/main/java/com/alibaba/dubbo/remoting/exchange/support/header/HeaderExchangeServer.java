@@ -212,6 +212,7 @@ public class HeaderExchangeServer implements ExchangeServer {
     public void reset(URL url) {
         server.reset(url);
         try {
+            //url中是否包含heartbeat或者heartbeat.timeout属性
             if (url.hasParameter(Constants.HEARTBEAT_KEY)
                     || url.hasParameter(Constants.HEARTBEAT_TIMEOUT_KEY)) {
                 int h = url.getParameter(Constants.HEARTBEAT_KEY, heartbeat);
