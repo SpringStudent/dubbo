@@ -56,30 +56,43 @@ import java.util.concurrent.atomic.AtomicReference;
 public abstract class AbstractRegistry implements Registry {
 
     // URL address separator, used in file cache, service provider URL separation
+    //URL地址分隔符，用于文件缓存，服务提供商URL分隔
     private static final char URL_SEPARATOR = ' ';
     // URL address separated regular expression for parsing the service provider URL list in the file cache
     private static final String URL_SPLIT = "\\s+";
     // Log output
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     // Local disk cache, where the special key value.registies records the list of registry centers, and the others are the list of notified service providers
-    //本地磁盘缓存，其中特殊键value.registies记录注册表中心列表，其他是已通知服务提供商的列表
+    //本地磁盘缓存，其中特殊键value.registies记录注册表中心列表，其他是已通知服务提供者的列表
     private final Properties properties = new Properties();
-    // File cache timing writing
+    // 文件缓存定时写入
     private final ExecutorService registryCacheExecutor = Executors.newFixedThreadPool(1, new NamedThreadFactory("DubboSaveRegistryCache", true));
-    // Is it synchronized to save the file
+    // 是否同步保存文件
     private final boolean syncSaveFile;
+    // 上次文件缓存变更版本
     private final AtomicLong lastCacheChanged = new AtomicLong();
+    // 已注册服务URL集合
     private final Set<URL> registered = new ConcurrentHashSet<URL>();
+    //已经订阅的<URL, Set<NotifyListener>>
     private final ConcurrentMap<URL, Set<NotifyListener>> subscribed = new ConcurrentHashMap<URL, Set<NotifyListener>>();
+    //已经通知的<URL, Map<String, List<URL>>>
     private final ConcurrentMap<URL, Map<String, List<URL>>> notified = new ConcurrentHashMap<URL, Map<String, List<URL>>>();
+    //zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=demo-provider&
+    // client=curator&dubbo=2.0.0&interface=com.alibaba.dubbo.registry.RegistryService&pid=4685&timestamp=1507286468150
     private URL registryUrl;
-    // Local disk cache file
+    // 本地磁盘缓存文件
     private File file;
 
     public AbstractRegistry(URL url) {
         setUrl(url);
-        // Start file save timer
+        /**
+         * 获取URL对象的save.file属性默认为false代表不异步保存文件
+         */
         syncSaveFile = url.getParameter(Constants.REGISTRY_FILESAVE_SYNC_KEY, false);
+        /**
+         * 获取URL对象的file属性，如果没有则dubbo帮我们指定默认的文件配置：像这样子
+         * C:\Users\Administrator\.dubbo\dubbo-registry-echo-provider-192.168.1.233:2181.cache
+         */
         String filename = url.getParameter(Constants.FILE_KEY, System.getProperty("user.home") + "/.dubbo/dubbo-registry-" + url.getParameter(Constants.APPLICATION_KEY) + "-" + url.getAddress() + ".cache");
         File file = null;
         if (ConfigUtils.isNotEmpty(filename)) {
@@ -91,7 +104,21 @@ public abstract class AbstractRegistry implements Registry {
             }
         }
         this.file = file;
+        /**
+         * 加载文件C:\Users\Administrator\.dubbo\dubbo-registry-echo-provider-192.168.1.233:2181.cache内容保存类似下面这样子的
+         *  com.alibaba.dubbo.demo.DemoService=empty\://10.10.10.10\:20880/com.alibaba.dubbo.demo.DemoService?anyhost\=true&application\=demo-provider&category
+         *  \=configurators&check\=false&dubbo\=2.0.0&generic\=false&interface\=com.alibaba.dubbo.demo.DemoService&methods\=sayHello&pid\=5259&side\=provider&timestamp\=1507294508053
+         * 到成员变Properties properties = new Properties()
+         */
         loadProperties();
+        /**
+         * zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&backup=10.20.153.11:2181,10.20.153.12:2181&dubbo=2.0.2&interface=com.alibaba.dubbo.registry.RegistryService&pid=8640&timestamp=1572932516092
+         * 通过调用getBackUpUrls最终变成了
+         * zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&backup=10.20.153.11:2181,10.20.153.12:2181&dubbo=2.0.2&interface=com.alibaba.dubbo.registry.RegistryService&pid=8640&timestamp=1572932516092
+         * zookeeper://10.20.153.11:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&backup=10.20.153.11:2181,10.20.153.12:2181&dubbo=2.0.2&interface=com.alibaba.dubbo.registry.RegistryService&pid=8640&timestamp=1572932516092
+         * zookeeper://10.20.153.12:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&backup=10.20.153.11:2181,10.20.153.12:2181&dubbo=2.0.2&interface=com.alibaba.dubbo.registry.RegistryService&pid=8640&timestamp=1572932516092
+         *通知监听器，URL 变化结果
+         */
         notify(url.getBackupUrls());
     }
 
@@ -192,10 +219,12 @@ public abstract class AbstractRegistry implements Registry {
     }
 
     private void loadProperties() {
+        //文件是否存在
         if (file != null && file.exists()) {
             InputStream in = null;
             try {
                 in = new FileInputStream(file);
+                //加载文件内容到AbstractRegistry的properties成员变量
                 properties.load(in);
                 if (logger.isInfoEnabled()) {
                     logger.info("Load registry store file " + file + ", data: " + properties);
@@ -351,14 +380,14 @@ public abstract class AbstractRegistry implements Registry {
 
     protected void notify(List<URL> urls) {
         if (urls == null || urls.isEmpty()) return;
-
+        //遍历URL对应的所有NotifyListener
         for (Map.Entry<URL, Set<NotifyListener>> entry : getSubscribed().entrySet()) {
             URL url = entry.getKey();
-
+            //如果urls中的任意一个url与当subscribed的key对应的url匹配
             if (!UrlUtils.isMatch(url, urls.get(0))) {
                 continue;
             }
-
+            //通知
             Set<NotifyListener> listeners = entry.getValue();
             if (listeners != null) {
                 for (NotifyListener listener : listeners) {

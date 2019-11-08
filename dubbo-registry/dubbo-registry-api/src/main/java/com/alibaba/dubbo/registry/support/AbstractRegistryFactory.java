@@ -90,7 +90,7 @@ public abstract class AbstractRegistryFactory implements RegistryFactory {
         // Lock the registry access process to ensure a single instance of the registry
         LOCK.lock();
         try {
-            //访问缓存
+            //访问已经缓存的Registry
             Registry registry = REGISTRIES.get(key);
             if (registry != null) {
                 return registry;

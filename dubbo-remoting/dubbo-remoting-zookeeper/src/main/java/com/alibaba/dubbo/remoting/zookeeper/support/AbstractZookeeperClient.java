@@ -32,11 +32,19 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public abstract class AbstractZookeeperClient<TargetChildListener> implements ZookeeperClient {
 
     protected static final Logger logger = LoggerFactory.getLogger(AbstractZookeeperClient.class);
-
+    /**
+     * 服务注册中心的url
+     *zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&
+     * backup=10.20.153.11:2181,10.20.153.12:2181&dubbo=2.0.2&interface=com.alibaba.dubbo.registry.RegistryService&pid=17464&timestamp=1573182003753
+     */
     private final URL url;
-
+    /**
+     * zookeeper状态监听器
+     */
     private final Set<StateListener> stateListeners = new CopyOnWriteArraySet<StateListener>();
-
+    /**
+     * path路径监听器
+     */
     private final ConcurrentMap<String, ConcurrentMap<ChildListener, TargetChildListener>> childListeners = new ConcurrentHashMap<String, ConcurrentMap<ChildListener, TargetChildListener>>();
 
     private volatile boolean closed = false;

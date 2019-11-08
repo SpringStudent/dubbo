@@ -366,9 +366,20 @@ public final class URL implements Serializable {
         return address.toString();
     }
 
+    /**
+     * zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&backup=10.20.153.11:2181,10.20.153.12:2181&dubbo=2.0.2&interface=com.alibaba.dubbo.registry.RegistryService&pid=8640&timestamp=1572932516092
+     * 通过调用getBackUpUrls最终变成了
+     * zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&backup=10.20.153.11:2181,10.20.153.12:2181&dubbo=2.0.2&interface=com.alibaba.dubbo.registry.RegistryService&pid=8640&timestamp=1572932516092
+     * zookeeper://10.20.153.11:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&backup=10.20.153.11:2181,10.20.153.12:2181&dubbo=2.0.2&interface=com.alibaba.dubbo.registry.RegistryService&pid=8640&timestamp=1572932516092
+     * zookeeper://10.20.153.12:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-provider&backup=10.20.153.11:2181,10.20.153.12:2181&dubbo=2.0.2&interface=com.alibaba.dubbo.registry.RegistryService&pid=8640&timestamp=1572932516092
+     * 通过url生成所有连接
+     * @return List<URL>
+     */
     public List<URL> getBackupUrls() {
         List<URL> urls = new ArrayList<URL>();
+        //首先加入自身url
         urls.add(this);
+        //获取url中的backup属性
         String[] backups = getParameter(Constants.BACKUP_KEY, new String[0]);
         if (backups != null && backups.length > 0) {
             for (String backup : backups) {
@@ -439,6 +450,7 @@ public final class URL implements Serializable {
         if (value == null || value.length() == 0) {
             return defaultValue;
         }
+        //使用","拆分value
         return Constants.COMMA_SPLIT_PATTERN.split(value);
     }
 

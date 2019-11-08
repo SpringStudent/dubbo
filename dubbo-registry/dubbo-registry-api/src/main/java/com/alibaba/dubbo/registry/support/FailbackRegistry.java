@@ -43,19 +43,21 @@ import java.util.concurrent.TimeUnit;
 public abstract class FailbackRegistry extends AbstractRegistry {
 
     // Scheduled executor service
+    // 定时调度线程池，用于对注册失败、订阅失败的重试
     private final ScheduledExecutorService retryExecutor = Executors.newScheduledThreadPool(1, new NamedThreadFactory("DubboRegistryFailedRetryTimer", true));
 
     // Timer for failure retry, regular check if there is a request for failure, and if there is, an unlimited retry
+    // 重试失败计时器，定期检查是否有失败请求，是否有无限次重试，用于取消重试的调度任务
     private final ScheduledFuture<?> retryFuture;
-
+    // 注册失败的Set<URL>
     private final Set<URL> failedRegistered = new ConcurrentHashSet<URL>();
-
+    // 取消注册失败的Set<URL>
     private final Set<URL> failedUnregistered = new ConcurrentHashSet<URL>();
-
+    //订阅失败的url
     private final ConcurrentMap<URL, Set<NotifyListener>> failedSubscribed = new ConcurrentHashMap<URL, Set<NotifyListener>>();
-
+    //取消订阅失败的url
     private final ConcurrentMap<URL, Set<NotifyListener>> failedUnsubscribed = new ConcurrentHashMap<URL, Set<NotifyListener>>();
-
+    //通知失败的url
     private final ConcurrentMap<URL, Map<NotifyListener, List<URL>>> failedNotified = new ConcurrentHashMap<URL, Map<NotifyListener, List<URL>>>();
 
     /**
@@ -64,13 +66,23 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     private final int retryPeriod;
 
     public FailbackRegistry(URL url) {
+        //调用父类的构造函数
         super(url);
+        //从URL对象中获取属性retry.period 如果没指定默认为5000毫秒
         this.retryPeriod = url.getParameter(Constants.REGISTRY_RETRY_PERIOD_KEY, Constants.DEFAULT_REGISTRY_RETRY_PERIOD);
+        //使用retryExecutor定时调度retry()方法
+        //retry()方法主要是
         this.retryFuture = retryExecutor.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
                 // Check and connect to the registry
                 try {
+                    /**
+                     * 注册失败的重新注册url
+                     * 取消注册失败的url重新取消注册
+                     * 订阅失败的url重新订阅
+                     * 取消订阅失败的url重新取消订阅
+                     */
                     retry();
                 } catch (Throwable t) { // Defensive fault tolerance
                     logger.error("Unexpected error occur at failed retry, cause: " + t.getMessage(), t);
@@ -131,7 +143,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     public void register(URL url) {
         //父类方法实现将该url添加到registered集合中
         super.register(url);
-        //一处该url
+        //从failedRegistered和failedUnregistered集合一处url
         failedRegistered.remove(url);
         failedUnregistered.remove(url);
         try {
@@ -142,7 +154,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             Throwable t = e;
 
             // If the startup detection is opened, the Exception is thrown directly.
-            // 如果启动检测已打开，则直接引发Exception。如果check是true直接引发一场
+            // 如果启动检测已打开，则直接引发Exception。如果check是true直接抛出异常
             boolean check = getUrl().getParameter(Constants.CHECK_KEY, true)
                     && url.getParameter(Constants.CHECK_KEY, true)
                     && !Constants.CONSUMER_PROTOCOL.equals(url.getProtocol());
@@ -293,7 +305,8 @@ public abstract class FailbackRegistry extends AbstractRegistry {
 
     @Override
     protected void recover() throws Exception {
-        // register
+        // 已经注册的url添加到failedRegistered，通过FailbackRegistry的定时任务
+        //进行重新注册
         Set<URL> recoverRegistered = new HashSet<URL>(getRegistered());
         if (!recoverRegistered.isEmpty()) {
             if (logger.isInfoEnabled()) {
@@ -303,7 +316,8 @@ public abstract class FailbackRegistry extends AbstractRegistry {
                 failedRegistered.add(url);
             }
         }
-        // subscribe
+        // 已经订阅的URL添加到failedSubscribed,通过FailbackRegistry的定时任务
+        // 进行重新订阅
         Map<URL, Set<NotifyListener>> recoverSubscribed = new HashMap<URL, Set<NotifyListener>>(getSubscribed());
         if (!recoverSubscribed.isEmpty()) {
             if (logger.isInfoEnabled()) {

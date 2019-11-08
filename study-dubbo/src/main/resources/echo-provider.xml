@@ -25,7 +25,7 @@
     <dubbo:application name="echo-provider"/>
 
     <!-- use multicast registry center to export service -->
-    <dubbo:registry id="lcRegistry" address="zookeeper://127.0.0.1:2181;zookeeper://192.168.1.233:2181"/>
+    <dubbo:registry id="lcRegistry" address="zookeeper://127.0.0.1:2181?backup=10.20.153.11:2181,10.20.153.12:2181"/>
     <dubbo:registry id="rdRegistry" address="zookeeper://192.168.1.234:2181"/>
 
     <!-- use dubbo protocol to export service on port 20880 -->
@@ -39,7 +39,7 @@
         <dubbo:method name="addListener" retries="2">
             <!--<dubbo:argument index="1" callback="true"/>-->
             <!--也可以通过指定类型的方式-->
-            <dubbo:argument type="com.alibaba.dubbo.study.day03.callback.CallbackListener" callback="true" />
+            <dubbo:argument type="com.alibaba.dubbo.study.day03.callback.CallbackListener" callback="true"/>
         </dubbo:method>
     </dubbo:service>
 
