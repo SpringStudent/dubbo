@@ -125,14 +125,18 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     }
 
     private void removeFailedSubscribed(URL url, NotifyListener listener) {
+        //从failedSubscribed／failedUnsubscribed中overrideSubscribeUrl所对应的监听器集合中删除overrideSubscribeListener实例
         Set<NotifyListener> listeners = failedSubscribed.get(url);
         if (listeners != null) {
             listeners.remove(listener);
         }
+        //
         listeners = failedUnsubscribed.get(url);
         if (listeners != null) {
             listeners.remove(listener);
         }
+        //从failedNotified中获取overrideSubscrbieUrl通知失败的map Map<NotifyListener, List<URL>>
+        //然后移除listener
         Map<NotifyListener, List<URL>> notified = failedNotified.get(url);
         if (notified != null) {
             notified.remove(listener);
@@ -217,7 +221,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             doSubscribe(url, listener);
         } catch (Exception e) {
             Throwable t = e;
-            //获取该url对应的缓存url TODO 不知道做什么的
+            //获取该url对应的缓存url
             List<URL> urls = getCacheUrls(url);
             if (urls != null && !urls.isEmpty()) {
                 notify(url, listener, urls);

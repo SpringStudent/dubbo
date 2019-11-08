@@ -203,8 +203,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
                 List<URL> urls = new ArrayList<URL>();
                 //获取url的所有类型后
 
-                //url
-                //url（overrideSubscribeUrl）：provider://10.10.10.10:20880/com.alibaba.dubbo.demo.DemoService?
+                //url(overrideSubscribeUrl)：provider://10.10.10.10:20880/com.alibaba.dubbo.demo.DemoService?
                 // anyhost=true&application=demo-provider&category=configurators&check=false&dubbo=2.0.0&generic=false&
                 // interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello&pid=9544&side=provider&timestamp=1507643800076
                 for (String path : toCategoriesPath(url)) {
@@ -226,11 +225,13 @@ public class ZookeeperRegistry extends FailbackRegistry {
                     //创建持久化节点创建持久化节点/dubbo/com.alibaba.dubbo.demo.DemoService/configurators
                     zkClient.create(path, false);
                     //监听/dubbo/com.alibaba.dubbo.demo.DemoService/configurators节点
+                    //返回path的子节点
                     List<String> children = zkClient.addChildListener(path, zkListener);
                     if (children != null) {
                         urls.addAll(toUrlsWithEmpty(url, path, children));
                     }
                 }
+                //调用notify
                 notify(url, listener, urls);
             }
         } catch (Throwable e) {

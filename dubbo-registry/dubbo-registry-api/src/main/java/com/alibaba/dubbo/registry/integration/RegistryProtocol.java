@@ -160,6 +160,7 @@ public class RegistryProtocol implements Protocol {
         // Subscribe the override data
         // FIXME When the provider subscribes, it will affect the scene : a certain JVM exposes the service and call the same service. Because the subscribed is cached key with the name of the service, it causes the subscription information to cover.
         // FIXME 提供者订阅时，会影响同一JVM即暴露服务，又引用同一服务的的场景，因为subscribed以服务名为缓存的key，导致订阅信息覆盖
+        //provider://169.254.22.149:20880/com.alibaba.dubbo.study.day01.xml.service.EchoService?addListener.1.callback=true&addListener.retries=2&anyhost=true&application=echo-provider&bean.name=com.alibaba.dubbo.study.day01.xml.service.EchoService&category=configurators&check=false&dubbo=2.0.2&generic=false&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=19992&side=provider&timestamp=1573183625289
         final URL overrideSubscribeUrl = getSubscribedOverrideUrl(registeredProviderUrl);
         //创建监听器
         final OverrideListener overrideSubscribeListener = new OverrideListener(overrideSubscribeUrl, originInvoker);
@@ -390,7 +391,12 @@ public class RegistryProtocol implements Protocol {
      * 3.由export方法传递的调用者，最好是exporter的调用者
      */
     private class OverrideListener implements NotifyListener {
-
+        /**
+         * provider://169.254.22.149:20880/com.alibaba.dubbo.study.day01.xml.service.EchoService?addListener.1.callback=true
+         * &addListener.retries=2&anyhost=true&application=echo-provider&bean.name=com.alibaba.dubbo.study.day01.xml.service.EchoService
+         * &category=configurators&check=false&dubbo=2.0.2&generic=false&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService
+         * &methods=echo,addListener&pid=19992&side=provider&timestamp=1573183625289
+         */
         private final URL subscribeUrl;
         private final Invoker originInvoker;
 
@@ -409,13 +415,12 @@ public class RegistryProtocol implements Protocol {
             List<URL> matchedUrls = getMatchedUrls(urls, subscribeUrl);
             logger.debug("subscribe url: " + subscribeUrl + ", override urls: " + matchedUrls);
             // No matching results
-            //如果没有匹配成功
+            //如果configurators的所有配置不需要应用于overrideSubscribeUrl,退出程序
             if (matchedUrls.isEmpty()) {
                 return;
             }
 
             List<Configurator> configurators = RegistryDirectory.toConfigurators(matchedUrls);
-            //获取invoker
             final Invoker<?> invoker;
             if (originInvoker instanceof InvokerDelegete) {
                 invoker = ((InvokerDelegete<?>) originInvoker).getInvoker();
@@ -449,15 +454,18 @@ public class RegistryProtocol implements Protocol {
         }
 
         private List<URL> getMatchedUrls(List<URL> configuratorUrls, URL currentSubscribe) {
+            //配置的override://xxx 与overrideSubscribeUrl匹配下
             List<URL> result = new ArrayList<URL>();
             for (URL url : configuratorUrls) {
                 URL overrideUrl = url;
-                // Compatible with the old version
+                //如果/dubbo/service/configurators的url配置并没有category属性
+                //并且为override协议
                 if (url.getParameter(Constants.CATEGORY_KEY) == null
                         && Constants.OVERRIDE_PROTOCOL.equals(url.getProtocol())) {
+                    //添加默认的category属性值为configurators
                     overrideUrl = url.addParameter(Constants.CATEGORY_KEY, Constants.CONFIGURATORS_CATEGORY);
                 }
-
+                //匹配！
                 // Check whether url is to be applied to the current service
                 if (UrlUtils.isMatch(currentSubscribe, overrideUrl)) {
                     result.add(url);

@@ -115,8 +115,9 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
     /**
      * Convert override urls to map for use when re-refer.
+     * 将替代网址转换为映射以供重新引用时使用
      * Send all rules every time, the urls will be reassembled and calculated
-     *
+     * 每次发送所有规则，网址将重新组合并计算
      * @param urls Contract:
      *             </br>1.override://0.0.0.0/...( or override://ip:port...?anyhost=true)&para1=value1... means global rules (all of the providers take effect)
      *             </br>2.override://ip:port...?anyhost=false Special rules (only for a certain provider)
@@ -131,17 +132,21 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
         List<Configurator> configurators = new ArrayList<Configurator>(urls.size());
         for (URL url : urls) {
+            //如果是empty://跳出循环 清空configurators
             if (Constants.EMPTY_PROTOCOL.equals(url.getProtocol())) {
                 configurators.clear();
                 break;
             }
+            //获取url中的所有参数
             Map<String, String> override = new HashMap<String, String>(url.getParameters());
             //The anyhost parameter of override may be added automatically, it can't change the judgement of changing url
+            //override的anyhost参数将会被自动添加，他不能更改url的判断
             override.remove(Constants.ANYHOST_KEY);
             if (override.size() == 0) {
                 configurators.clear();
                 continue;
             }
+            //添加
             configurators.add(configuratorFactory.getConfigurator(url));
         }
         Collections.sort(configurators);
