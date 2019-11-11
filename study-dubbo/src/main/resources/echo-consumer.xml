@@ -33,7 +33,7 @@
     <!-- generate proxy for the remote service, then demoService can be used in the same way as the
     local regular interface -->
     <dubbo:reference id="demoService" check="false" interface="com.alibaba.dubbo.study.day01.xml.service.EchoService">
-        <dubbo:method name="echo" async="true" onreturn="onReturnCallback.onreturn"/>
+        <dubbo:method name="echo" retries="3" async="true" onreturn="onReturnCallback.onreturn"/>
     </dubbo:reference>
 
 </beans>

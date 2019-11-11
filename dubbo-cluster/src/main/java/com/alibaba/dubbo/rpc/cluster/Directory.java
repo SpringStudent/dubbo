@@ -34,6 +34,7 @@ public interface Directory<T> extends Node {
 
     /**
      * get service type.
+     * 服务的类型
      *
      * @return service type.
      */
@@ -41,6 +42,7 @@ public interface Directory<T> extends Node {
 
     /**
      * list invokers.
+     * invokers列表
      *
      * @return invokers
      */

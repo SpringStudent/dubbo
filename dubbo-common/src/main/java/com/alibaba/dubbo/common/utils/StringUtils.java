@@ -351,11 +351,14 @@ public final class StringUtils {
 
     public static String getServiceKey(Map<String, String> ps) {
         StringBuilder buf = new StringBuilder();
+        //group的属性值
         String group = ps.get(Constants.GROUP_KEY);
         if (group != null && group.length() > 0) {
             buf.append(group).append("/");
         }
+        //interface属性
         buf.append(ps.get(Constants.INTERFACE_KEY));
+        //version属性
         String version = ps.get(Constants.VERSION_KEY);
         if (version != null && version.length() > 0) {
             buf.append(":").append(version);

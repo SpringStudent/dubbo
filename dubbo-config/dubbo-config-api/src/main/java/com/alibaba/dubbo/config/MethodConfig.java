@@ -66,7 +66,7 @@ public class MethodConfig extends AbstractMethodConfig {
     private Boolean deprecated;
 
     // whether to enable sticky
-    /**
+    /**7
      * 设置true 该接口上的所有方法使用同一个provider.如果需要更复杂的规则，请使用用路由
      */
     private Boolean sticky;

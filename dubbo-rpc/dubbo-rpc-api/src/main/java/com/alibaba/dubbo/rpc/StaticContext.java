@@ -61,6 +61,9 @@ public class StaticContext extends ConcurrentHashMap<Object, Object> {
     }
 
     public static String getKey(Map<String, String> paras, String methodName, String suffix) {
+        /**
+         * 返回的key类似com.gysoft.xxx.XxxService.hello.onthrow.method
+         */
         return getKey(StringUtils.getServiceKey(paras), methodName, suffix);
     }
 

@@ -28,6 +28,6 @@ public class MergeableCluster implements Cluster {
     @Override
     public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
         return new MergeableClusterInvoker<T>(directory);
-    }
+}
 
 }

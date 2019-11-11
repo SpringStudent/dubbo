@@ -300,21 +300,36 @@ public class RegistryProtocol implements Protocol {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
+        //获取url中的registry属性的值没有则为dubbo，然后设置协议为registry对应的值,处理后的url类似如下这个样子
+        //registry://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-consumer&dubbo=2.0.2&pid=16684&
+        // refer=application=echo-consumer&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&
+        // interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=16684&
+        // register.ip=169.254.22.149&side=consumer&timestamp=1573450786523&registry=zookeeper&timestamp=1573450792295
         url = url.setProtocol(url.getParameter(Constants.REGISTRY_KEY, Constants.DEFAULT_REGISTRY)).removeParameter(Constants.REGISTRY_KEY);
+        //获取到的为ZookeeperRegistry
         Registry registry = registryFactory.getRegistry(url);
+        // 如果是RegistryService
         if (RegistryService.class.equals(type)) {
             return proxyFactory.getInvoker((T) registry, type, url);
         }
 
-        // group="a,b" or group="*"
+        // url中的查询字符串转换成map
+        // refer=application=echo-consumer&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&
+        // interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=16684&
+        // register.ip=169.254.22.149&side=consumer&timestamp=1573450786523&registry=zookeeper&timestamp=1573450792295
+        // 变成了Map qs
         Map<String, String> qs = StringUtils.parseQueryString(url.getParameterAndDecoded(Constants.REFER_KEY));
+        // 获取group如果为null
         String group = qs.get(Constants.GROUP_KEY);
         if (group != null && group.length() > 0) {
+            //如果存在多个group或者group为* group="a,b" or group="*"
+            //则使用MergeableCluster
             if ((Constants.COMMA_SPLIT_PATTERN.split(group)).length > 1
                     || "*".equals(group)) {
                 return doRefer(getMergeableCluster(), registry, type, url);
             }
         }
+        //只有一个组或者没有组配置，根据dubbo的spi机制默认情况下为FailoverCluster，执行doRefer
         return doRefer(cluster, registry, type, url);
     }
 
@@ -323,18 +338,31 @@ public class RegistryProtocol implements Protocol {
     }
 
     private <T> Invoker<T> doRefer(Cluster cluster, Registry registry, Class<T> type, URL url) {
+        //创建RegistryDirectory
         RegistryDirectory<T> directory = new RegistryDirectory<T>(type, url);
         directory.setRegistry(registry);
         directory.setProtocol(protocol);
-        // all attributes of REFER_KEY
+        // 将所有refer属性放入到map
+        // refer=application=echo-consumer&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&
+        // interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=16684&
+        // register.ip=169.254.22.149&side=consumer&timestamp=1573450786523&registry=zookeeper&timestamp=1573450792295
         Map<String, String> parameters = new HashMap<String, String>(directory.getUrl().getParameters());
+        //consumer://169.254.22.149/com.alibaba.dubbo.study.day01.xml.service.EchoService?application=echo-consumer&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=16244&side=consumer&timestamp=1573451795393
         URL subscribeUrl = new URL(Constants.CONSUMER_PROTOCOL, parameters.remove(Constants.REGISTER_IP_KEY), 0, type.getName(), parameters);
         if (!Constants.ANY_VALUE.equals(url.getServiceInterface())
                 && url.getParameter(Constants.REGISTER_KEY, true)) {
+            //给subscrbeUrl添加category属性和check属性
+            //consumer://169.254.22.149/com.alibaba.dubbo.study.day01.xml.service.EchoService?application=echo-consumer&
+            //category=consumers&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&
+            //interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=23400&
+            // side=consumer&timestamp=1573451977816
             URL registeredConsumerUrl = getRegisteredConsumerUrl(subscribeUrl, url);
             registry.register(registeredConsumerUrl);
+            //设置directory的registered属ConsumerUrl属性
             directory.setRegisteredConsumerUrl(registeredConsumerUrl);
         }
+        //subscribeUrl添加category属性provder,configurators,routers
+        //并调用RegistryDirectory的subscribe方法
         directory.subscribe(subscribeUrl.addParameter(Constants.CATEGORY_KEY,
                 Constants.PROVIDERS_CATEGORY
                         + "," + Constants.CONFIGURATORS_CATEGORY
