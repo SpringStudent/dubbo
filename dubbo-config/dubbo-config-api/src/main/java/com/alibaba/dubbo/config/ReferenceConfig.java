@@ -450,9 +450,12 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                 }
             } else {
                 //加载注册中心url
-                List<URL> us = loadRegistries(false);//registry://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-consumer&dubbo=2.0.2&pid=16304&registry=zookeeper&timestamp=1573441590938
+                //registry://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-consumer&dubbo=2.0.2&
+                // pid=16304&registry=zookeeper&timestamp=1573441590938
+                List<URL> us = loadRegistries(false);
                 if (us != null && !us.isEmpty()) {
                     for (URL u : us) {
+                        //加载监控中心配置，赞不关心
                         URL monitorUrl = loadMonitor(u);
                         if (monitorUrl != null) {
                             map.put(Constants.MONITOR_KEY, URL.encode(monitorUrl.toFullString()));
@@ -465,7 +468,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                     throw new IllegalStateException("No such any registry to reference " + interfaceName + " on the consumer " + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion() + ", please config <dubbo:registry address=\"...\" /> to your spring config.");
                 }
             }
-            //单个注册中心的服务提供者
+            //单个注册中心或服务提供者(服务直连，下同)
             if (urls.size() == 1) {
                 //调用RegistryProtocol的refer方法创建invoker
                 invoker = refprotocol.refer(interfaceClass, urls.get(0));
