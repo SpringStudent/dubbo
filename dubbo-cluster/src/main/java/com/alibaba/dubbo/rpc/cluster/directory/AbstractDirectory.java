@@ -35,20 +35,32 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Abstract implementation of Directory: Invoker list returned from this Directory's list method have been filtered by Routers
+ * 目录的抽象实现：从此目录的列表方法返回的调用者列表已由路由器过滤
  *
  */
 public abstract class AbstractDirectory<T> implements Directory<T> {
 
     // logger
     private static final Logger logger = LoggerFactory.getLogger(AbstractDirectory.class);
-
+    /**
+     * 注册中心url
+     * zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-consumer&dubbo=2.0.2&pid=49676&
+     * refer=application=echo-consumer&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&
+     * interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=49676&
+     * register.ip=169.254.22.149&side=consumer&timestamp=1573561006651&timestamp=1573561007009
+     */
     private final URL url;
 
     private volatile boolean destroyed = false;
-
+    /**
+     * 消费方的url对象
+     * consumer://xxxx这种
+     */
     private volatile URL consumerUrl;
-
+    /**
+     * dubbo路由机制实现,通过订阅routes节点route://xxx
+     * 解析而成
+     */
     private volatile List<Router> routers;
 
     public AbstractDirectory(URL url) {

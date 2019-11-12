@@ -301,7 +301,8 @@ public class RegistryProtocol implements Protocol {
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
         //获取url中的registry属性的值没有则为dubbo，然后设置协议为registry对应的值,处理后的url类似如下这个样子
-        //registry://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-consumer&dubbo=2.0.2&pid=16684&
+        //对于通过点对点直连方式的url会变成dubbo://xxxx这种形式
+        //zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=echo-consumer&dubbo=2.0.2&pid=16684&
         // refer=application=echo-consumer&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&
         // interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=16684&
         // register.ip=169.254.22.149&side=consumer&timestamp=1573450786523&registry=zookeeper&timestamp=1573450792295
@@ -347,7 +348,9 @@ public class RegistryProtocol implements Protocol {
         // interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=16684&
         // register.ip=169.254.22.149&side=consumer&timestamp=1573450786523&registry=zookeeper&timestamp=1573450792295
         Map<String, String> parameters = new HashMap<String, String>(directory.getUrl().getParameters());
-        //consumer://169.254.22.149/com.alibaba.dubbo.study.day01.xml.service.EchoService?application=echo-consumer&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=16244&side=consumer&timestamp=1573451795393
+        //consumer://169.254.22.149/com.alibaba.dubbo.study.day01.xml.service.EchoService?application=echo-consumer&check=false
+        // &dubbo=2.0.2&echo.async=true&echo.retries=3&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService
+        // &methods=echo,addListener&pid=16244&side=consumer&timestamp=1573451795393
         URL subscribeUrl = new URL(Constants.CONSUMER_PROTOCOL, parameters.remove(Constants.REGISTER_IP_KEY), 0, type.getName(), parameters);
         if (!Constants.ANY_VALUE.equals(url.getServiceInterface())
                 && url.getParameter(Constants.REGISTER_KEY, true)) {

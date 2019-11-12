@@ -107,6 +107,12 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
     private volatile URL overrideDirectoryUrl; // Initialization at construction time, assertion not null, and always assign non null value
 
+    /**
+     * consumer://169.254.22.149/com.alibaba.dubbo.study.day01.xml.service.EchoService?application=echo-consumer&
+     * category=consumers&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&
+     * interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=23400&
+     * side=consumer&timestamp=1573451977816
+     */
     private volatile URL registeredConsumerUrl;
 
     /**
