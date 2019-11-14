@@ -46,27 +46,44 @@ public class ConditionRouter extends AbstractRouter {
 
     private static final Logger logger = LoggerFactory.getLogger(ConditionRouter.class);
     private static final int DEFAULT_PRIORITY = 2;
+    /**
+     *分组正则匹配
+     */
     private static Pattern ROUTE_PATTERN = Pattern.compile("([&!=,]*)\\s*([^&!=,\\s]+)");
+    /**
+     * 当路由结果为空时，是否强制执行，如果不强制执行，路由结果为空的路由规则将自动失效，可不填，缺省为 false 。
+     */
     private final boolean force;
+    /**
+     * 消费者匹配条件集合，通过解析【条件表达式 rule 的 `=>` 之前半部分】
+     */
     private final Map<String, MatchPair> whenCondition;
+    /**
+     * 提供者地址列表的过滤条件，通过解析【条件表达式 rule 的 `=>` 之后半部分】
+     */
     private final Map<String, MatchPair> thenCondition;
 
     public ConditionRouter(URL url) {
         this.url = url;
+        //获取url中的priority属性
         this.priority = url.getParameter(Constants.PRIORITY_KEY, DEFAULT_PRIORITY);
+        //获取force属性
         this.force = url.getParameter(Constants.FORCE_KEY, false);
         try {
+            //获取rule属性
             String rule = url.getParameterAndDecoded(Constants.RULE_KEY);
             if (rule == null || rule.trim().length() == 0) {
                 throw new IllegalArgumentException("Illegal route rule!");
             }
+            //替换rule字符串中的consumer.属性和provider.属性
             rule = rule.replace("consumer.", "").replace("provider.", "");
             int i = rule.indexOf("=>");
+            //分割消费者和提供者规则
             String whenRule = i < 0 ? null : rule.substring(0, i).trim();
             String thenRule = i < 0 ? rule.trim() : rule.substring(i + 2).trim();
             Map<String, MatchPair> when = StringUtils.isBlank(whenRule) || "true".equals(whenRule) ? new HashMap<String, MatchPair>() : parseRule(whenRule);
             Map<String, MatchPair> then = StringUtils.isBlank(thenRule) || "false".equals(thenRule) ? null : parseRule(thenRule);
-            // NOTE: It should be determined on the business level whether the `When condition` can be empty or not.
+            // 注意：应在业务级别上确定“何时条件”是否可以为空。
             this.whenCondition = when;
             this.thenCondition = then;
         } catch (ParseException e) {

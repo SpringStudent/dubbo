@@ -119,6 +119,8 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
         // in order to avoid closing a client multiple times, a counter is used in case of connection per jvm, every
         // time when client.close() is called, counter counts down once, and when counter reaches zero, client will be
         // closed.
+        //为了避免多次关闭客户端，在每个jvm进行连接的情况下，每次调用client.close（）时，
+        // 都会使用一个计数器，计数器递减一次，而当计数器达到零时，客户端将被关闭。
         if (super.isDestroyed()) {
             return;
         } else {

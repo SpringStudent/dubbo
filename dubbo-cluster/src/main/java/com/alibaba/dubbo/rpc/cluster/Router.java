@@ -34,15 +34,14 @@ import java.util.List;
 public interface Router extends Comparable<Router>{
 
     /**
-     * get the router url.
-     *
+     *获取router url
+     * route://0.0.0.0/com.foo.BarService?category=routers&dynamic=false&rule=" + URL.encode("host = 10.20.153.10 => host = 10.20.153.11
      * @return url
      */
     URL getUrl();
 
     /**
-     * route.
-     *
+     * 路由.
      * @param invokers
      * @param url        refer url
      * @param invocation
@@ -52,7 +51,7 @@ public interface Router extends Comparable<Router>{
     <T> List<Invoker<T>> route(List<Invoker<T>> invokers, URL url, Invocation invocation) throws RpcException;
 
     /**
-     * Router's priority, used to sort routers.
+     * 路由器的优先级，用于对路由器进行排序。
      *
      * @return router's priority
      */

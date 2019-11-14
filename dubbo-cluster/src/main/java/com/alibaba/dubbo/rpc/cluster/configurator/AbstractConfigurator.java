@@ -30,7 +30,10 @@ import java.util.Set;
  *
  */
 public abstract class AbstractConfigurator implements Configurator {
-
+    /**
+     * 携带配置的Url
+     * override://10.20.153.10/com.foo.BarService?category=configurators&dynamic=false&disbaled=true
+     */
     private final URL configuratorUrl;
 
     public AbstractConfigurator(URL url) {
@@ -55,14 +58,15 @@ public abstract class AbstractConfigurator implements Configurator {
                 || url == null || url.getHost() == null) {
             return url;
         }
-        // If override url has port, means it is a provider address. We want to control a specific provider with this override url, it may take effect on the specific provider instance or on consumers holding this provider instance.
+        //如果覆盖URL具有端口，则意味着它是提供者地址。 我们要使用此替代网址来控制特定的提供程序，
+        //它可能会对特定的提供程序实例或持有此提供程序实例的使用者生效。
         if (configuratorUrl.getPort() != 0) {
             if (url.getPort() == configuratorUrl.getPort()) {
                 return configureIfMatch(url.getHost(), url);
             }
-        } else {// override url don't have a port, means the ip override url specify is a consumer address or 0.0.0.0
-            // 1.If it is a consumer ip address, the intention is to control a specific consumer instance, it must takes effect at the consumer side, any provider received this override url should ignore;
-            // 2.If the ip is 0.0.0.0, this override url can be used on consumer, and also can be used on provider
+        } else {// 替代网址没有端口，表示ip替代网址指定为使用者地址或0.0.0.0
+            // 1.如果它是一个消费者IP地址，目的是控制一个特定的消费者实例，它必须在消费者端生效，任何接收到此替代URL的提供者都应忽略；
+            // 2.如果ip为0.0.0.0，则此替代URL可以在消费者上使用，也可以在提供者序上使用
             if (url.getParameter(Constants.SIDE_KEY, Constants.PROVIDER).equals(Constants.CONSUMER)) {
                 return configureIfMatch(NetUtils.getLocalHost(), url);// NetUtils.getLocalHost is the ip address consumer registered to registry.
             } else if (url.getParameter(Constants.SIDE_KEY, Constants.CONSUMER).equals(Constants.PROVIDER)) {

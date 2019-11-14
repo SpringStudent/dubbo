@@ -330,6 +330,7 @@ public abstract class AbstractRegistry implements Registry {
         //key为overrideSuscribeUrl类似如下格式
         //listener
         // provider://169.254.22.149:20880/com.alibaba.dubbo.study.day01.xml.service.EchoService?anyhost=true&application=echo-provider&bean.name=com.alibaba.dubbo.study.day01.xml.service.EchoService&category=configurators&check=false&dubbo=2.0.2&generic=false&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo&pid=3720&side=provider&timestamp=1571881716824
+        // consumer://169.254.22.149/com.alibaba.dubbo.study.day01.xml.service.EchoService?application=echo-consumer&category=providers,configurators,routers&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=15272&side=consumer&timestamp=1573623575474
         Set<NotifyListener> listeners = subscribed.get(url);
         if (listeners == null) {
             subscribed.putIfAbsent(url, new ConcurrentHashSet<NotifyListener>());
@@ -439,7 +440,11 @@ public abstract class AbstractRegistry implements Registry {
         //获取url（overrideSubscribeUrl）：provider://10.10.10.10:20880/com.alibaba.dubbo.demo.DemoService?
         // anyhost=true&application=demo-provider&category=configurators&check=false&dubbo=2.0.0&generic=false&
         // interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello&pid=9544&side=provider&timestamp=1507643800076
-        //对应的通知过的URL集合
+        //consumer://169.254.22.149/com.alibaba.dubbo.study.day01.xml.service.EchoService?application=echo-consumer&
+        // category=providers,configurators,routers&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&
+        // interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=15140&
+        // side=consumer&timestamp=1573626718233
+        //对应的通知过的URL集合 key-种类 value-List<URL> urls
         Map<String, List<URL>> categoryNotified = notified.get(url);
         if (categoryNotified == null) {
             notified.putIfAbsent(url, new ConcurrentHashMap<String, List<URL>>());

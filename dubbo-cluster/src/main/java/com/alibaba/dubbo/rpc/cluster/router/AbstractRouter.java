@@ -20,8 +20,13 @@ import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.rpc.cluster.Router;
 
 public abstract class AbstractRouter implements Router {
-
+    /**
+     * route://0.0.0.0/com.foo.BarService?category=routers&dynamic=false&rule=" + URL.encode("host = 10.20.153.10 => host = 10.20.153.11
+     */
     protected URL url;
+    /**
+     * 路由优先级
+     */
     protected int priority;
 
     @Override

@@ -25,17 +25,15 @@ import com.alibaba.dubbo.common.URL;
 public interface Configurator extends Comparable<Configurator> {
 
     /**
-     * get the configurator url.
-     *
+     * 获取配置url
+     * override://10.20.153.10/com.foo.BarService?category=configurators&dynamic=false&disbaled=true
      * @return configurator url.
      */
     URL getUrl();
 
     /**
-     * Configure the provider url.
-     * O
-     *
-     * @param url - old rovider url.
+     * 配置提供者url
+     * @param url - old provider url.
      * @return new provider url.
      */
     URL configure(URL url);

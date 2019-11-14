@@ -150,7 +150,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
     @Override
     protected void doSubscribe(final URL url, final NotifyListener listener) {
         try {
-            //订阅所有数据,监控中心的订阅
+            //订阅所有数据,监控中心的订阅操作
             if (Constants.ANY_VALUE.equals(url.getServiceInterface())) {
                 //获取根目录
                 String root = toRootPath();
@@ -206,6 +206,10 @@ public class ZookeeperRegistry extends FailbackRegistry {
                 //url(overrideSubscribeUrl)：provider://10.10.10.10:20880/com.alibaba.dubbo.demo.DemoService?
                 // anyhost=true&application=demo-provider&category=configurators&check=false&dubbo=2.0.0&generic=false&
                 // interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello&pid=9544&side=provider&timestamp=1507643800076
+                // url :consumer://169.254.22.149/com.alibaba.dubbo.study.day01.xml.service.EchoService?application=echo-consumer&
+                // category=providers,configurators,routers&check=false&dubbo=2.0.2&echo.async=true&echo.retries=3&
+                // interface=com.alibaba.dubbo.study.day01.xml.service.EchoService&methods=echo,addListener&pid=22152&
+                // side=consumer&timestamp=1573625041767
                 for (String path : toCategoriesPath(url)) {
                     ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
                     if (listeners == null) {
