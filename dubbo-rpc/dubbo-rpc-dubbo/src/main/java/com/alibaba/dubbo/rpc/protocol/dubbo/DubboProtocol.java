@@ -351,6 +351,7 @@ public class DubboProtocol extends AbstractProtocol {
 
     @Override
     public <T> Invoker<T> refer(Class<T> serviceType, URL url) throws RpcException {
+        //序列化优化
         optimizeSerialization(url);
         //创建invoker
         DubboInvoker<T> invoker = new DubboInvoker<T>(serviceType, url, getClients(url), invokers);
@@ -373,7 +374,7 @@ public class DubboProtocol extends AbstractProtocol {
         for (int i = 0; i < clients.length; i++) {
             //如果共享连接
             if (service_share_connect) {
-                //获取共享客户的ExchangeClient
+                //获取共享的ExchangeClient
                 clients[i] = getSharedClient(url);
             } else {
                 //初始化新的客户端
@@ -403,8 +404,8 @@ public class DubboProtocol extends AbstractProtocol {
         }
         //放入该key对应的锁对象
         locks.putIfAbsent(key, new Object());
+        //加锁重新获取
         synchronized (locks.get(key)) {
-            //在获取一次 为什么啊
             if (referenceClientMap.containsKey(key)) {
                 return referenceClientMap.get(key);
             }

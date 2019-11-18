@@ -381,6 +381,7 @@ public class UrlUtils {
     }
 
     public static boolean isMatchGlobPattern(String pattern, String value, URL param) {
+        // 引用服务消费者参数，param 参数为服务消费者 url比如这种host = $host的需要从consumer://xxx获取host
         if (param != null && pattern.startsWith("$")) {
             pattern = param.getRawParameter(pattern.substring(1));
         }

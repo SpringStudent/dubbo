@@ -42,7 +42,7 @@ public interface Router extends Comparable<Router>{
 
     /**
      * 路由.
-     * @param invokers
+     * @param invokers 调用者列表
      * @param url        refer url
      * @param invocation
      * @return routed invokers

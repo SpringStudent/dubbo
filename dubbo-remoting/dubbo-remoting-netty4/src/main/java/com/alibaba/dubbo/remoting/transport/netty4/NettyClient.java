@@ -44,12 +44,18 @@ import java.util.concurrent.TimeUnit;
 public class NettyClient extends AbstractClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
-
+    /**
+     * IO线程组，同一个JVM中所有的客户端公用一个IO线程组，且线程数固定为(32与CPU核数+1的最小值)。
+     */
     private static final NioEventLoopGroup nioEventLoopGroup = new NioEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
-
+    /**
+     * Netty客户端启动实例
+     */
     private Bootstrap bootstrap;
-
-    private volatile Channel channel; // volatile, please copy reference to use
+    /**
+     * 客户端连接，请copy其引用使用。
+     */
+    private volatile Channel channel;
 
     public NettyClient(final URL url, final ChannelHandler handler) throws RemotingException {
         super(url, wrapChannelHandler(url, handler));
@@ -88,6 +94,7 @@ public class NettyClient extends AbstractClient {
     @Override
     protected void doConnect() throws Throwable {
         long start = System.currentTimeMillis();
+        //连接到远程服务
         ChannelFuture future = bootstrap.connect(getConnectAddress());
         try {
             boolean ret = future.awaitUninterruptibly(getConnectTimeout(), TimeUnit.MILLISECONDS);
@@ -96,6 +103,7 @@ public class NettyClient extends AbstractClient {
                 Channel newChannel = future.channel();
                 try {
                     // Close old channel
+                    //关闭oldchannel
                     Channel oldChannel = NettyClient.this.channel; // copy reference
                     if (oldChannel != null) {
                         try {
@@ -108,6 +116,7 @@ public class NettyClient extends AbstractClient {
                         }
                     }
                 } finally {
+                    //如果当前客户端被关闭了，关闭newChannel
                     if (NettyClient.this.isClosed()) {
                         try {
                             if (logger.isInfoEnabled()) {
@@ -119,6 +128,7 @@ public class NettyClient extends AbstractClient {
                             NettyChannel.removeChannelIfDisconnected(newChannel);
                         }
                     } else {
+                        //将newChannel赋值给client的channel
                         NettyClient.this.channel = newChannel;
                     }
                 }

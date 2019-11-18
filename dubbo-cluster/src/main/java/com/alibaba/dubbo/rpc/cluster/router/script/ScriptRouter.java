@@ -54,16 +54,23 @@ public class ScriptRouter extends AbstractRouter {
     private final String rule;
 
     public ScriptRouter(URL url) {
+        //script://xxxx 赋值
         this.url = url;
+        //获取属性类型type
         String type = url.getParameter(Constants.TYPE_KEY);
+        //获取优先级属性priority
         this.priority = url.getParameter(Constants.PRIORITY_KEY, DEFAULT_PRIORITY);
+        //获取rule的key
         String rule = url.getParameterAndDecoded(Constants.RULE_KEY);
+        //没有type属性赋值javascript
         if (type == null || type.length() == 0) {
             type = Constants.DEFAULT_SCRIPT_TYPE_KEY;
         }
+        //路由规则脚本没设置抛出异常
         if (rule == null || rule.length() == 0) {
             throw new IllegalStateException(new IllegalStateException("route rule can not be empty. rule:" + rule));
         }
+        //获取ScriptEngine对象，解析脚本,没有创建有的话从缓存取
         ScriptEngine engine = engines.get(type);
         if (engine == null) {
             engine = new ScriptEngineManager().getEngineByName(type);
@@ -80,6 +87,9 @@ public class ScriptRouter extends AbstractRouter {
     @SuppressWarnings("unchecked")
     public <T> List<Invoker<T>> route(List<Invoker<T>> invokers, URL url, Invocation invocation) throws RpcException {
         try {
+            /**
+             * 通过engine执行定义的脚本获取route后的List<Invoker>
+             */
             List<Invoker<T>> invokersCopy = new ArrayList<Invoker<T>>(invokers);
             Compilable compilable = (Compilable) engine;
             Bindings bindings = engine.createBindings();

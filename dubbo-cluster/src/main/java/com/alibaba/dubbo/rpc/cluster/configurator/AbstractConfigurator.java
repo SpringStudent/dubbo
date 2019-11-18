@@ -54,6 +54,8 @@ public abstract class AbstractConfigurator implements Configurator {
 
     @Override
     public URL configure(URL url) {
+        //如果configuratorUrl为null或者configuratorUrl的host为null或者当前参数url为null或者当前url的host为null
+        //直接返回url不处理
         if (configuratorUrl == null || configuratorUrl.getHost() == null
                 || url == null || url.getHost() == null) {
             return url;
@@ -65,34 +67,42 @@ public abstract class AbstractConfigurator implements Configurator {
                 return configureIfMatch(url.getHost(), url);
             }
         } else {// 替代网址没有端口，表示ip替代网址指定为使用者地址或0.0.0.0
-            // 1.如果它是一个消费者IP地址，目的是控制一个特定的消费者实例，它必须在消费者端生效，任何接收到此替代URL的提供者都应忽略；
-            // 2.如果ip为0.0.0.0，则此替代URL可以在消费者上使用，也可以在提供者序上使用
+            // 1.如果url为消费端则它是一个消费者IP地址，目的是控制一个特定的消费者实例，它必须在消费者端生效，任何接收到此替代URL的提供者都应忽略；
+            // 2.如果url为提供方，则该url可以在消费者上使用，也可以在提供者上使用
             if (url.getParameter(Constants.SIDE_KEY, Constants.PROVIDER).equals(Constants.CONSUMER)) {
-                return configureIfMatch(NetUtils.getLocalHost(), url);// NetUtils.getLocalHost is the ip address consumer registered to registry.
+                return configureIfMatch(NetUtils.getLocalHost(), url);
             } else if (url.getParameter(Constants.SIDE_KEY, Constants.CONSUMER).equals(Constants.PROVIDER)) {
-                return configureIfMatch(Constants.ANYHOST_VALUE, url);// take effect on all providers, so address must be 0.0.0.0, otherwise it won't flow to this if branch
+                return configureIfMatch(Constants.ANYHOST_VALUE, url);
             }
         }
         return url;
     }
 
     private URL configureIfMatch(String host, URL url) {
+        //匹配host
         if (Constants.ANYHOST_VALUE.equals(configuratorUrl.getHost()) || host.equals(configuratorUrl.getHost())) {
+            //该配置url携带的application属性
             String configApplication = configuratorUrl.getParameter(Constants.APPLICATION_KEY,
                     configuratorUrl.getUsername());
+            //需要被覆盖配置的url的application属性
             String currentApplication = url.getParameter(Constants.APPLICATION_KEY, url.getUsername());
+            //如果override://xxx没有配置application或者为*或者application相同
             if (configApplication == null || Constants.ANY_VALUE.equals(configApplication)
                     || configApplication.equals(currentApplication)) {
+                //条件keys
                 Set<String> conditionKeys = new HashSet<String>();
                 conditionKeys.add(Constants.CATEGORY_KEY);
                 conditionKeys.add(Constants.CHECK_KEY);
                 conditionKeys.add(Constants.DYNAMIC_KEY);
                 conditionKeys.add(Constants.ENABLED_KEY);
+                //遍历configuratorUrl的parameters
                 for (Map.Entry<String, String> entry : configuratorUrl.getParameters().entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
+                    // "application" "side" 带有 `"~"` 开头的 KEY都需要放入conditionKeys中
                     if (key.startsWith("~") || Constants.APPLICATION_KEY.equals(key) || Constants.SIDE_KEY.equals(key)) {
                         conditionKeys.add(key);
+                        //如果value不为null并且value 不等于* 并且value的值不等于 截取"~"之后的key获取到的值 说明条件不匹配直接返回
                         if (value != null && !Constants.ANY_VALUE.equals(value)
                                 && !value.equals(url.getParameter(key.startsWith("~") ? key.substring(1) : key))) {
                             return url;
@@ -106,9 +116,9 @@ public abstract class AbstractConfigurator implements Configurator {
     }
 
     /**
-     * Sort by host, priority
-     * 1. the url with a specific host ip should have higher priority than 0.0.0.0
-     * 2. if two url has the same host, compare by priority value；
+     * 按照host排序sort优先级
+     * 1. 具有特定主机IP的URL的优先级应高于0.0.0.0
+     * 2. 如果两个URL具有相同的主机，则按优先级值进行比较；
      *
      * @param o
      * @return
@@ -118,9 +128,10 @@ public abstract class AbstractConfigurator implements Configurator {
         if (o == null) {
             return -1;
         }
-
+        //比较host
         int ipCompare = getUrl().getHost().compareTo(o.getUrl().getHost());
-        if (ipCompare == 0) {//host is the same, sort by priority
+        //host相同通过比较priority
+        if (ipCompare == 0) {
             int i = getUrl().getParameter(Constants.PRIORITY_KEY, 0),
                     j = o.getUrl().getParameter(Constants.PRIORITY_KEY, 0);
             return i < j ? -1 : (i == j ? 0 : 1);
