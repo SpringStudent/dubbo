@@ -60,14 +60,13 @@ public abstract class AbstractConfigurator implements Configurator {
                 || url == null || url.getHost() == null) {
             return url;
         }
-        //如果覆盖URL具有端口，则意味着它是提供者地址。 我们要使用此替代网址来控制特定的提供程序，
-        //它可能会对特定的提供程序实例或持有此提供程序实例的使用者生效。
+        // override输入提供端地址，意图是控制提供者机器。可能在提供端生效 也可能在消费端生效
         if (configuratorUrl.getPort() != 0) {
             if (url.getPort() == configuratorUrl.getPort()) {
                 return configureIfMatch(url.getHost(), url);
             }
         } else {// 替代网址没有端口，表示ip替代网址指定为使用者地址或0.0.0.0
-            // 1.如果url为消费端则它是一个消费者IP地址，目的是控制一个特定的消费者实例，它必须在消费者端生效，任何接收到此替代URL的提供者都应忽略；
+            // 1.如果url为消费方则它是一个消费者IP地址，目的是控制一个特定的消费者实例，它必须在消费者端生效，任何接收到此替代URL的提供者都应忽略；
             // 2.如果url为提供方，则该url可以在消费者上使用，也可以在提供者上使用
             if (url.getParameter(Constants.SIDE_KEY, Constants.PROVIDER).equals(Constants.CONSUMER)) {
                 return configureIfMatch(NetUtils.getLocalHost(), url);
@@ -89,7 +88,7 @@ public abstract class AbstractConfigurator implements Configurator {
             //如果override://xxx没有配置application或者为*或者application相同
             if (configApplication == null || Constants.ANY_VALUE.equals(configApplication)
                     || configApplication.equals(currentApplication)) {
-                //条件keys
+                //条件keys,不参与url的配置覆盖或者追加
                 Set<String> conditionKeys = new HashSet<String>();
                 conditionKeys.add(Constants.CATEGORY_KEY);
                 conditionKeys.add(Constants.CHECK_KEY);

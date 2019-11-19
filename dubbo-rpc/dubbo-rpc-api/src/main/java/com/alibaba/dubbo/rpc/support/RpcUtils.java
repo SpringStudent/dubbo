@@ -84,7 +84,7 @@ public class RpcUtils {
     }
 
     /**
-     * Idempotent operation: invocation id will be added in async operation by default
+     * 幂等操作：默认情况下，调用ID将添加到异步操作中
      *
      * @param url
      * @param inv
@@ -96,6 +96,7 @@ public class RpcUtils {
     }
 
     private static boolean isAttachInvocationId(URL url, Invocation invocation) {
+        //获取invocationid.autoattach或者methodName.invocationid.autoattach的值
         String value = url.getMethodParameter(invocation.getMethodName(), Constants.AUTO_ATTACH_INVOCATIONID_KEY);
         if (value == null) {
             // add invocationid in async operation by default

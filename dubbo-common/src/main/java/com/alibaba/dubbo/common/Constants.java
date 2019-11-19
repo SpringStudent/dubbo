@@ -423,7 +423,7 @@ public class Constants {
     public static final boolean DEFAULT_CLUSTER_AVAILABLE_CHECK = true;
 
     /**
-     * To decide whether to enable sticky strategy for cluster
+     * 决定是否为集群启用粘性策略
      */
     public static final String CLUSTER_STICKY_KEY = "sticky";
 
