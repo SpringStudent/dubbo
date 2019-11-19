@@ -58,6 +58,7 @@ public class BroadcastClusterInvoker<T> extends AbstractClusterInvoker<T> {
                 logger.warn(e.getMessage(), e);
             }
         }
+        //如果异常不为空 抛出异常
         if (exception != null) {
             throw exception;
         }

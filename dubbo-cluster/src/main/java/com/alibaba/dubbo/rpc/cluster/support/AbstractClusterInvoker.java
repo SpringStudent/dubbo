@@ -105,11 +105,7 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
      * 使用负载平衡策略选择一个调用程序。</br>
      * a)首先，使用loadbalance选择一个调用程序。 如果此调用程序在先前选择的列表中，
      * 或者如果此调用程序不可用，则继续执行步骤b（重新选择），否则返回第一个选定的调用程序</br>
-     * b)Reslection, the validation rule for reselection: selected > available. This rule guarantees that
-     * the selected invoker has the minimum chance to be one in the previously selected list, and also
-     * guarantees this invoker is available.
-     * <p>
-     * 此规则确保所选调用者有最小的机会选择为先前已选择的列表，并且还保证此调用者可用
+     * b)此规则确保所选调用者有最小的机会选择为先前已选择的列表，并且还保证此调用者可用
      *
      * @param loadbalance load balance policy
      * @param invocation
