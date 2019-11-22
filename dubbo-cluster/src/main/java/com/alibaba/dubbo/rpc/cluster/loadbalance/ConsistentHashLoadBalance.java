@@ -63,13 +63,21 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
     }
 
     private static final class ConsistentHashSelector<T> {
-
+        /**
+         * key- 提供者address的hash算法得到的值，value-Invoker对象
+         */
         private final TreeMap<Long, Invoker<T>> virtualInvokers;
-
+        /**
+         * 分片数量
+         */
         private final int replicaNumber;
-
+        /**
+         * invokers列表求得的hashcode
+         */
         private final int identityHashCode;
-
+        /**
+         * 参数下标数组
+         */
         private final int[] argumentIndex;
 
         ConsistentHashSelector(List<Invoker<T>> invokers, String methodName, int identityHashCode) {

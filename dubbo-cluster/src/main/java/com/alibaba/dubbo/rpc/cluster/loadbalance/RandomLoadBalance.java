@@ -53,7 +53,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
                 sameWeight = false;
             }
         }
-        //如果总权重大于0并并没有相同权重
+        //如果总权重大于0并且所有权重并不相同
         if (totalWeight > 0 && !sameWeight) {
             // 随机获取一个 [0, totalWeight) 区间内的数字
             int offset = random.nextInt(totalWeight);

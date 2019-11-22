@@ -52,7 +52,7 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         // 获取提供者url中的weigth权重
         int weight = invoker.getUrl().getMethodParameter(invocation.getMethodName(), Constants.WEIGHT_KEY, Constants.DEFAULT_WEIGHT);
         if (weight > 0) {
-            //获取服务提供者启动之间戳remote.timestamp 默认为0L
+            //获取服务提供者启动时间戳remote.timestamp 默认为0L
             long timestamp = invoker.getUrl().getParameter(Constants.REMOTE_TIMESTAMP_KEY, 0L);
             if (timestamp > 0L) {
                 //计算服务提供者运行时长
