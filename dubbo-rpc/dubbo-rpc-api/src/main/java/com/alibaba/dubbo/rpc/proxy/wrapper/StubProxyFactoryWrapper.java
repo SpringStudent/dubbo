@@ -62,11 +62,15 @@ public class StubProxyFactoryWrapper implements ProxyFactory {
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> T getProxy(Invoker<T> invoker) throws RpcException {
+        //委托JavassistProxyFactory或者JdkProxyFactory创建代理对象
         T proxy = proxyFactory.getProxy(invoker);
+        //
         if (GenericService.class != invoker.getInterface()) {
             String stub = invoker.getUrl().getParameter(Constants.STUB_KEY, invoker.getUrl().getParameter(Constants.LOCAL_KEY));
             if (ConfigUtils.isNotEmpty(stub)) {
+                //获取接口类型
                 Class<?> serviceType = invoker.getInterface();
+                //本地存根配置判断
                 if (ConfigUtils.isDefault(stub)) {
                     if (invoker.getUrl().hasParameter(Constants.STUB_KEY)) {
                         stub = serviceType.getName() + "Stub";
@@ -75,14 +79,18 @@ public class StubProxyFactoryWrapper implements ProxyFactory {
                     }
                 }
                 try {
+                    //加载本地存根类
                     Class<?> stubClass = ReflectUtils.forName(stub);
+                    //判断本地存根类是否实现了serviceType，没有抛出异常
                     if (!serviceType.isAssignableFrom(stubClass)) {
                         throw new IllegalStateException("The stub implementation class " + stubClass.getName() + " not implement interface " + serviceType.getName());
                     }
                     try {
+                        //查找本地存根类是否有 serviceType的构造函数
                         Constructor<?> constructor = ReflectUtils.findConstructor(stubClass, serviceType);
+                        //有的话使用proxy对象创建stub对象返回
                         proxy = (T) constructor.newInstance(new Object[]{proxy});
-                        //export stub service
+                        //如果dubbo.stub.event 配置为true，export
                         URL url = invoker.getUrl();
                         if (url.getParameter(Constants.STUB_EVENT_KEY, Constants.DEFAULT_STUB_EVENT)) {
                             url = url.addParameter(Constants.STUB_EVENT_METHODS_KEY, StringUtils.join(Wrapper.getWrapper(proxy.getClass()).getDeclaredMethodNames(), ","));
