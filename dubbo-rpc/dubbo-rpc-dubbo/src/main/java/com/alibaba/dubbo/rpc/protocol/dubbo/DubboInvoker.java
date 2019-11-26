@@ -70,7 +70,7 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
         final String methodName = RpcUtils.getMethodName(invocation);
         //设置path 到附加属性
         inv.setAttachment(Constants.PATH_KEY, getUrl().getPath());
-        //设置key 到附加属性
+        //version 到附加属性
         inv.setAttachment(Constants.VERSION_KEY, version);
         //获取通信用的ExchangeClient
         ExchangeClient currentClient;
@@ -81,6 +81,7 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
         }
         try {
             boolean isAsync = RpcUtils.isAsync(getUrl(), invocation);
+            //单向通信
             boolean isOneway = RpcUtils.isOneway(getUrl(), invocation);
             //timeout属性
             int timeout = getUrl().getMethodParameter(methodName, Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
@@ -100,6 +101,7 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
                 //设置rpc上下文调用为FutureAdapter，这个时候发起请求的地方可以通过rpc上下文拿到FutureAdapter
                 //然后获取最终调用结果呗
                 RpcContext.getContext().setFuture(new FutureAdapter<Object>(future));
+
                 return new RpcResult();
             } else {
                 //同步调用

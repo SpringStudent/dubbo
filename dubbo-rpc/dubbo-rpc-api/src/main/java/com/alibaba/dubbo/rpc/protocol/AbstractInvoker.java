@@ -137,7 +137,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         if (attachment != null && attachment.size() > 0) {
             invocation.addAttachmentsIfAbsent(attachment);
         }
-        //rpc上下文中的副驾属性
+        //rpc调用可以通过RpcContext.getContext().setAttachment(key,value)方法设置本次调用绑定的附加参数
         Map<String, String> contextAttachments = RpcContext.getContext().getAttachments();
         if (contextAttachments != null && contextAttachments.size() != 0) {
             /**
@@ -152,7 +152,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         if (getUrl().getMethodParameter(invocation.getMethodName(), Constants.ASYNC_KEY, false)) {
             invocation.setAttachment(Constants.ASYNC_KEY, Boolean.TRUE.toString());
         }
-        //如果是异步调用添加invocationId
+        //如果是异步调用添加invocationId,给invocation的attachment中添加key为id的键值对
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
 
 

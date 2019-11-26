@@ -73,7 +73,7 @@ public class MockClusterInvoker<T> implements Invoker<T> {
     public Result invoke(Invocation invocation) throws RpcException {
         //结果
         Result result = null;
-        //查询mock的值，methodName.mock->mock->default.mock
+        //获取mock的值，methodName.mock->mock->default.mock
         String value = directory.getUrl().getMethodParameter(invocation.getMethodName(), Constants.MOCK_KEY, Boolean.FALSE.toString()).trim();
         if (value.length() == 0 || value.equalsIgnoreCase("false")) {
             //不进行mock直接调用invoker的invoe方法
