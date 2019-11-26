@@ -23,13 +23,21 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 public abstract class AbstractChannelBuffer implements ChannelBuffer {
-
+    /**
+     * 读索引
+     */
     private int readerIndex;
-
+    /**
+     * 写索引
+     */
     private int writerIndex;
-
+    /**
+     * 标记读索引
+     */
     private int markedReaderIndex;
-
+    /**
+     * 标记写索引
+     */
     private int markedWriterIndex;
 
     @Override
@@ -87,6 +95,10 @@ public abstract class AbstractChannelBuffer implements ChannelBuffer {
         return writerIndex - readerIndex;
     }
 
+    /**
+     * 可写入的字节数
+     * @return int
+     */
     @Override
     public int writableBytes() {
         return capacity() - writerIndex;

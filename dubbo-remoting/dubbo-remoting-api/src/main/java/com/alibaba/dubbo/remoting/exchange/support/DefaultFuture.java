@@ -42,33 +42,60 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultFuture implements ResponseFuture {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultFuture.class);
-
+    /**
+     * key-请求id  value-channel连接
+     */
     private static final Map<Long, Channel> CHANNELS = new ConcurrentHashMap<Long, Channel>();
-
+    /**
+     * key-请求id  value-DefaultFuture
+     */
     private static final Map<Long, DefaultFuture> FUTURES = new ConcurrentHashMap<Long, DefaultFuture>();
 
     static {
+        //启动远程调用超时扫描线程
         Thread th = new Thread(new RemotingInvocationTimeoutScan(), "DubboResponseTimeoutScanTimer");
         th.setDaemon(true);
         th.start();
     }
 
-    // invoke id.
+    /**
+     * 请求id
+     */
     private final long id;
+    /**
+     * channel
+     */
     private final Channel channel;
+    /**
+     * 请求对象
+     */
     private final Request request;
+    /**
+     * 超时
+     */
     private final int timeout;
     private final Lock lock = new ReentrantLock();
     private final Condition done = lock.newCondition();
+    /**
+     * 启动时间
+     */
     private final long start = System.currentTimeMillis();
     private volatile long sent;
+    /**
+     * 响应
+     */
     private volatile Response response;
+    /**
+     * 响应回调
+     */
     private volatile ResponseCallback callback;
 
     public DefaultFuture(Channel channel, Request request, int timeout) {
         this.channel = channel;
         this.request = request;
+        //请求id
         this.id = request.getId();
+        //超时时间
         this.timeout = timeout > 0 ? timeout : channel.getUrl().getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
         // put into waiting map.
         FUTURES.put(id, this);
@@ -91,9 +118,7 @@ public class DefaultFuture implements ResponseFuture {
     }
 
     /**
-     * close a channel when a channel is inactive
-     * directly return the unfinished requests.
-     *
+     * 通道不活动时关闭通道直接返回未完成的请求。
      * @param channel channel to close
      */
     public static void closeChannel(Channel channel) {
@@ -140,12 +165,16 @@ public class DefaultFuture implements ResponseFuture {
         if (timeout <= 0) {
             timeout = Constants.DEFAULT_TIMEOUT;
         }
+        // 检测服务提供方是否成功返回了调用结果
         if (!isDone()) {
             long start = System.currentTimeMillis();
             lock.lock();
             try {
+                //循环检测是否返回了调用结果
                 while (!isDone()) {
+                    //未完成，等待超时时长
                     done.await(timeout, TimeUnit.MILLISECONDS);
+                    // 如果调用结果成功返回，或等待超时，此时跳出 while 循环，执行后续的逻辑
                     if (isDone() || System.currentTimeMillis() - start > timeout) {
                         break;
                     }
@@ -155,6 +184,7 @@ public class DefaultFuture implements ResponseFuture {
             } finally {
                 lock.unlock();
             }
+            //调用结果未返回，抛出异常
             if (!isDone()) {
                 throw new TimeoutException(sent > 0, channel, getTimeoutMessage(false));
             }
@@ -232,13 +262,17 @@ public class DefaultFuture implements ResponseFuture {
     }
 
     private Object returnFromResponse() throws RemotingException {
+        //调用结果拷贝
         Response res = response;
+        //如果response为null
         if (res == null) {
             throw new IllegalStateException("response cannot be null");
         }
+        //如果返回状态码ok
         if (res.getStatus() == Response.OK) {
             return res.getResult();
         }
+        //如果是客户端超时或者
         if (res.getStatus() == Response.CLIENT_TIMEOUT || res.getStatus() == Response.SERVER_TIMEOUT) {
             throw new TimeoutException(res.getStatus() == Response.SERVER_TIMEOUT, channel, res.getErrorMessage());
         }
@@ -284,6 +318,7 @@ public class DefaultFuture implements ResponseFuture {
             lock.unlock();
         }
         if (callback != null) {
+            //回调
             invokeCallback(callback);
         }
     }
@@ -311,13 +346,15 @@ public class DefaultFuture implements ResponseFuture {
                         if (future == null || future.isDone()) {
                             continue;
                         }
+                        //超时判断
                         if (System.currentTimeMillis() - future.getStartTimestamp() > future.getTimeout()) {
-                            // create exception response.
+                            //创建超时相应
                             Response timeoutResponse = new Response(future.getId());
-                            // set timeout status.
+                            //设置超时状态码
                             timeoutResponse.setStatus(future.isSent() ? Response.SERVER_TIMEOUT : Response.CLIENT_TIMEOUT);
+                            //超时错误消息
                             timeoutResponse.setErrorMessage(future.getTimeoutMessage(true));
-                            // handle response.
+                            //设置响应
                             DefaultFuture.received(future.getChannel(), timeoutResponse);
                         }
                     }

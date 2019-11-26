@@ -23,15 +23,20 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 public class DynamicChannelBuffer extends AbstractChannelBuffer {
-
+    /**
+     * 通道缓存工厂
+     */
     private final ChannelBufferFactory factory;
-
+    /**
+     * 通道缓存区
+     */
     private ChannelBuffer buffer;
 
     public DynamicChannelBuffer(int estimatedLength) {
         this(estimatedLength, HeapChannelBufferFactory.getInstance());
     }
 
+    //估计长度
     public DynamicChannelBuffer(int estimatedLength, ChannelBufferFactory factory) {
         if (estimatedLength < 0) {
             throw new IllegalArgumentException("estimatedLength: " + estimatedLength);
@@ -48,20 +53,27 @@ public class DynamicChannelBuffer extends AbstractChannelBuffer {
         if (minWritableBytes <= writableBytes()) {
             return;
         }
-
+        // 新增容量
         int newCapacity;
+        // 此缓冲区可包含的字节数等于0。
         if (capacity() == 0) {
+            // 新增容量设置为1
             newCapacity = 1;
         } else {
+            // 新增容量设置为缓冲区可包含的字节数
             newCapacity = capacity();
         }
+        // 最小新增容量 = 当前的写索引+最小写入的字节数
         int minNewCapacity = writerIndex() + minWritableBytes;
+        // 当新增容量比最小新增容量小
         while (newCapacity < minNewCapacity) {
             newCapacity <<= 1;
         }
-
+        // 通过工厂创建该容量大小当缓冲区
         ChannelBuffer newBuffer = factory().getBuffer(newCapacity);
+        // 从buffer中读取数据到newBuffer中
         newBuffer.writeBytes(buffer, 0, writerIndex());
+        // 替换原来到缓冲区
         buffer = newBuffer;
     }
 

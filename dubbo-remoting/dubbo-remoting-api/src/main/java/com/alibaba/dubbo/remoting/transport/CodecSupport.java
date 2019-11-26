@@ -62,6 +62,7 @@ public class CodecSupport {
     }
 
     public static Serialization getSerialization(URL url) {
+        //获取url中的serialization参数指定的序列化方式，默认使用hessian2序列化
         return ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(
                 url.getParameter(Constants.SERIALIZATION_KEY, Constants.DEFAULT_REMOTING_SERIALIZATION));
     }

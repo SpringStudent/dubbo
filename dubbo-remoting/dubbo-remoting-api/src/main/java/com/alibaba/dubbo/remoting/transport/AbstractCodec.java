@@ -36,10 +36,13 @@ public abstract class AbstractCodec implements Codec2 {
     private static final Logger logger = LoggerFactory.getLogger(AbstractCodec.class);
 
     protected static void checkPayload(Channel channel, long size) throws IOException {
+        //默认消息载荷大小
         int payload = Constants.DEFAULT_PAYLOAD;
+        //获取url中的payload参数属性限制
         if (channel != null && channel.getUrl() != null) {
             payload = channel.getUrl().getParameter(Constants.PAYLOAD_KEY, Constants.DEFAULT_PAYLOAD);
         }
+        //判断消息体是否太大了，太大了抛出异常
         if (payload > 0 && size > payload) {
             ExceedPayloadLimitException e = new ExceedPayloadLimitException("Data length too large: " + size + ", max payload: " + payload + ", channel: " + channel);
             logger.error(e);

@@ -53,6 +53,9 @@ public class MockInvokersSelector extends AbstractRouter {
         return invokers;
     }
 
+    /**
+     * 从invokers中查找并返回MockInvoker
+     */
     private <T> List<Invoker<T>> getMockedInvokers(final List<Invoker<T>> invokers) {
         if (!hasMockProviders(invokers)) {
             return null;
@@ -66,6 +69,9 @@ public class MockInvokersSelector extends AbstractRouter {
         return sInvokers;
     }
 
+    /**
+     * 从invokers中过滤掉MockInvoker并返回
+     */
     private <T> List<Invoker<T>> getNormalInvokers(final List<Invoker<T>> invokers) {
         if (!hasMockProviders(invokers)) {
             return invokers;
@@ -80,9 +86,11 @@ public class MockInvokersSelector extends AbstractRouter {
         }
     }
 
+
     private <T> boolean hasMockProviders(final List<Invoker<T>> invokers) {
         boolean hasMockProvider = false;
         for (Invoker<T> invoker : invokers) {
+            //判断invoker的协议是否为mock:协议
             if (invoker.getUrl().getProtocol().equals(Constants.MOCK_PROTOCOL)) {
                 hasMockProvider = true;
                 break;

@@ -200,19 +200,21 @@ final class DeprecatedExchangeCodec extends DeprecatedTelnetCodec implements Cod
     }
 
     protected void encodeRequest(Channel channel, OutputStream os, Request req) throws IOException {
+        //获取序列化方式
         Serialization serialization = CodecSupport.getSerialization(channel.getUrl());
-        // header.
+        // 创建消息头字节数组，长度为 16
         byte[] header = new byte[HEADER_LENGTH];
-        // set magic number.
+        //设置魔数第一个字节和第二个字节
         Bytes.short2bytes(MAGIC, header);
 
-        // set request and serialization flag.
+        //设置数据包类型（Request/Response）和序列化器编号
         header[2] = (byte) (FLAG_REQUEST | serialization.getContentTypeId());
-
+        // 设置通信方式(单向/双向)
         if (req.isTwoWay()) header[2] |= FLAG_TWOWAY;
+        // 设置事件标识
         if (req.isEvent()) header[2] |= FLAG_EVENT;
 
-        // set request id.
+        // 设置请求编号，8个字节，从第4个字节开始设置
         Bytes.long2bytes(req.getId(), header, 4);
 
         // encode request data.

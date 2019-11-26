@@ -28,7 +28,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * FutureAdapter
+ * 通过该类适配ResponseFuture获取最终调用结果
+ * 通过调用RpcContext.getContext().getFuture().get()
+ * 方法最终异步获取到结果
  */
 public class FutureAdapter<V> implements Future<V> {
 
@@ -61,6 +63,7 @@ public class FutureAdapter<V> implements Future<V> {
     @SuppressWarnings("unchecked")
     public V get() throws InterruptedException, ExecutionException {
         try {
+            //阻塞获取ResponseFuture中的调用结果
             return (V) (((Result) future.get()).recreate());
         } catch (RemotingException e) {
             throw new ExecutionException(e.getMessage(), e);
@@ -72,8 +75,10 @@ public class FutureAdapter<V> implements Future<V> {
     @Override
     @SuppressWarnings("unchecked")
     public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        //超时时间
         int timeoutInMillis = (int) TimeUnit.MILLISECONDS.convert(timeout, unit);
         try {
+            //超时等待获取结果
             return (V) (((Result) future.get(timeoutInMillis)).recreate());
         } catch (com.alibaba.dubbo.remoting.TimeoutException e) {
             throw new TimeoutException(StringUtils.toString(e));

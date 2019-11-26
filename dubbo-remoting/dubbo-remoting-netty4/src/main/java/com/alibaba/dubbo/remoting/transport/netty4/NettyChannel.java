@@ -54,12 +54,16 @@ final class NettyChannel extends AbstractChannel {
     }
 
     static NettyChannel getOrAddChannel(Channel ch, URL url, ChannelHandler handler) {
+        //如果channel为null
         if (ch == null) {
             return null;
         }
+        //获取NettyChannel
         NettyChannel ret = channelMap.get(ch);
         if (ret == null) {
+            //创建一个NettyChannel对象
             NettyChannel nettyChannel = new NettyChannel(ch, url, handler);
+            // 将 <Channel, NettyChannel> 键值对存入 channelMap 集合中
             if (ch.isActive()) {
                 ret = channelMap.putIfAbsent(ch, nettyChannel);
             }
@@ -93,16 +97,24 @@ final class NettyChannel extends AbstractChannel {
 
     @Override
     public void send(Object message, boolean sent) throws RemotingException {
+        //判断closed状态
         super.send(message, sent);
 
         boolean success = true;
         int timeout = 0;
         try {
+            //使用io.netty.channel.Channel写出消息
             ChannelFuture future = channel.writeAndFlush(message);
+            // sent 的值源于 <dubbo:method sent="true/false" /> 中 sent 的配置值，有两种配置值：
+            //   1. true: 等待消息发出，消息发送失败将抛出异常
+            //   2. false: 不等待消息发出，将消息放入 IO 队列，即刻返回
             if (sent) {
+                //判断消息是否超时
                 timeout = getUrl().getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
+                //等待消息发出，若在规定时间没能发出，success 会被置为 false
                 success = future.await(timeout);
             }
+
             Throwable cause = future.cause();
             if (cause != null) {
                 throw cause;

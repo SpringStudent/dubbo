@@ -125,16 +125,19 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     @Override
     public Result invoke(Invocation inv) throws RpcException {
         // if invoker is destroyed due to address refresh from registry, let's allow the current invoke to proceed
+        //如果由于注册中心地址刷新导致invoker状态是destroyed，我们允许当前invoke急需执行
         if (destroyed.get()) {
             logger.warn("Invoker for service " + this + " on consumer " + NetUtils.getLocalHost() + " is destroyed, "
                     + ", dubbo version is " + Version.getVersion() + ", this invoker should not be used any longer");
         }
-
         RpcInvocation invocation = (RpcInvocation) inv;
+        //设置invoker
         invocation.setInvoker(this);
+        //附加属性存在
         if (attachment != null && attachment.size() > 0) {
             invocation.addAttachmentsIfAbsent(attachment);
         }
+        //rpc上下文中的副驾属性
         Map<String, String> contextAttachments = RpcContext.getContext().getAttachments();
         if (contextAttachments != null && contextAttachments.size() != 0) {
             /**
@@ -145,15 +148,18 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
              */
             invocation.addAttachments(contextAttachments);
         }
+        //获取method.async 或者async属性，添加到attachment
         if (getUrl().getMethodParameter(invocation.getMethodName(), Constants.ASYNC_KEY, false)) {
             invocation.setAttachment(Constants.ASYNC_KEY, Boolean.TRUE.toString());
         }
+        //如果是异步调用添加invocationId
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
 
 
         try {
+            //委托子类实现方法调用
             return doInvoke(invocation);
-        } catch (InvocationTargetException e) { // biz exception
+        } catch (InvocationTargetException e) {
             Throwable te = e.getTargetException();
             if (te == null) {
                 return new RpcResult(e);

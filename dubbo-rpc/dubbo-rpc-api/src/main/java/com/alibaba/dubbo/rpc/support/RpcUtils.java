@@ -59,13 +59,19 @@ public class RpcUtils {
 
     public static Type[] getReturnTypes(Invocation invocation) {
         try {
+            //invocation不为null并且invocation不为null并且invocation的invoker的url不为null
+            //并且方法不以$开始
             if (invocation != null && invocation.getInvoker() != null
                     && invocation.getInvoker().getUrl() != null
                     && !invocation.getMethodName().startsWith("$")) {
+                //获取被调用接口的返回类型
                 String service = invocation.getInvoker().getUrl().getServiceInterface();
                 if (service != null && service.length() > 0) {
+                    //反射获取被调用类型
                     Class<?> cls = ReflectUtils.forName(service);
+                    //获取方法被调用的方法
                     Method method = cls.getMethod(invocation.getMethodName(), invocation.getParameterTypes());
+                    //返回null
                     if (method.getReturnType() == void.class) {
                         return null;
                     }
@@ -85,9 +91,6 @@ public class RpcUtils {
 
     /**
      * 幂等操作：默认情况下，调用ID将添加到异步操作中
-     *
-     * @param url
-     * @param inv
      */
     public static void attachInvocationIdIfAsync(URL url, Invocation inv) {
         if (isAttachInvocationId(url, inv) && getInvocationId(inv) == null && inv instanceof RpcInvocation) {
@@ -148,9 +151,11 @@ public class RpcUtils {
 
     public static boolean isAsync(URL url, Invocation inv) {
         boolean isAsync;
+        //如果当前invocation的attachment中的async属性为true
         if (Boolean.TRUE.toString().equals(inv.getAttachment(Constants.ASYNC_KEY))) {
             isAsync = true;
         } else {
+            //尝试从url中获取methodName.async->async->default.async属性，默认为false
             isAsync = url.getMethodParameter(getMethodName(inv), Constants.ASYNC_KEY, false);
         }
         return isAsync;
@@ -158,9 +163,11 @@ public class RpcUtils {
 
     public static boolean isOneway(URL url, Invocation inv) {
         boolean isOneway;
+        //附加的return属性 为false
         if (Boolean.FALSE.toString().equals(inv.getAttachment(Constants.RETURN_KEY))) {
             isOneway = true;
         } else {
+            //尝试从url中的methodName.retur->return属性 默认为true
             isOneway = !url.getMethodParameter(getMethodName(inv), Constants.RETURN_KEY, true);
         }
         return isOneway;

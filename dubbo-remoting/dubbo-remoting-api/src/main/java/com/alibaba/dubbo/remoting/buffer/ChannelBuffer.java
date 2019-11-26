@@ -26,6 +26,9 @@ import java.nio.ByteBuffer;
  * A random and sequential accessible sequence of zero or more bytes (octets).
  * This interface provides an abstract view for one or more primitive byte
  * arrays ({@code byte[]}) and {@linkplain ByteBuffer NIO buffers}.
+ *
+ * 零个或多个字节（八位字节）的随机且顺序可访问的序列。
+ * 该接口为一个或多个原始字节数组（{@code byte []}）和{@linkplain ByteBuffer NIO缓冲区}提供了抽象视图。
  * <p/>
  * <h3>Creation of a buffer</h3>
  * <p/>

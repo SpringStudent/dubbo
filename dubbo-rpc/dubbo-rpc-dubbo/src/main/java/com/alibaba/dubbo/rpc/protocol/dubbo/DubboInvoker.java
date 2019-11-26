@@ -68,9 +68,11 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
     protected Result doInvoke(final Invocation invocation) throws Throwable {
         RpcInvocation inv = (RpcInvocation) invocation;
         final String methodName = RpcUtils.getMethodName(invocation);
+        //设置path 到附加属性
         inv.setAttachment(Constants.PATH_KEY, getUrl().getPath());
+        //设置key 到附加属性
         inv.setAttachment(Constants.VERSION_KEY, version);
-
+        //获取通信用的ExchangeClient
         ExchangeClient currentClient;
         if (clients.length == 1) {
             currentClient = clients[0];
@@ -80,18 +82,31 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
         try {
             boolean isAsync = RpcUtils.isAsync(getUrl(), invocation);
             boolean isOneway = RpcUtils.isOneway(getUrl(), invocation);
+            //timeout属性
             int timeout = getUrl().getMethodParameter(methodName, Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
+            //无返回值
             if (isOneway) {
+                //url中的sent属性获取
                 boolean isSent = getUrl().getMethodParameter(methodName, Constants.SENT_KEY, false);
+                //发送请求
                 currentClient.send(inv, isSent);
+                //设置上下文中的 future 字段为 null
                 RpcContext.getContext().setFuture(null);
+                //返回空的结果
                 return new RpcResult();
+            //异步有返回值
             } else if (isAsync) {
                 ResponseFuture future = currentClient.request(inv, timeout);
+                //设置rpc上下文调用为FutureAdapter，这个时候发起请求的地方可以通过rpc上下文拿到FutureAdapter
+                //然后获取最终调用结果呗
                 RpcContext.getContext().setFuture(new FutureAdapter<Object>(future));
                 return new RpcResult();
             } else {
+                //同步调用
+                //设置上下文中的 future 字段为 null
                 RpcContext.getContext().setFuture(null);
+
+                // 发送请求，得到一个 ResponseFuture 实例，并调用该实例的 get 方法进行等待
                 return (Result) currentClient.request(inv, timeout).get();
             }
         } catch (TimeoutException e) {
