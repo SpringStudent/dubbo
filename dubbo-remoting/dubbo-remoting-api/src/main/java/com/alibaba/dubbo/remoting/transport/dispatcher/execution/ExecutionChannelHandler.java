@@ -42,6 +42,7 @@ public class ExecutionChannelHandler extends WrappedChannelHandler {
 
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
+        //仅仅处理request消息
         ExecutorService cexecutor = getExecutorService();
         if (message instanceof Request) {
             try {

@@ -105,6 +105,7 @@ public class JavassistCompiler extends AbstractCompiler {
                 cls.addInterface(pool.get(ifaceClass));
             }
         }
+
         String body = source.substring(source.indexOf("{") + 1, source.length() - 1);
         String[] methods = METHODS_PATTERN.split(body);
         for (String method : methods) {
@@ -119,6 +120,7 @@ public class JavassistCompiler extends AbstractCompiler {
                 }
             }
         }
+        cls.writeFile("E:\\Intellij\\workspace-dubbo\\dubbo\\dubbo-common\\src\\main\\java\\com\\alibaba\\dubbo\\common\\compiler\\");
         return cls.toClass(ClassHelper.getCallerClassLoader(getClass()), JavassistCompiler.class.getProtectionDomain());
     }
 

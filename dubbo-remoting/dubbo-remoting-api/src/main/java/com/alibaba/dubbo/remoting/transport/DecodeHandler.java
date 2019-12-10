@@ -36,15 +36,18 @@ public class DecodeHandler extends AbstractChannelHandlerDelegate {
 
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
+        // 对 Decodeable 接口实现类对象进行解码
         if (message instanceof Decodeable) {
             decode(message);
         }
 
         if (message instanceof Request) {
+            // 对 Request 的 data 字段进行解码
             decode(((Request) message).getData());
         }
 
         if (message instanceof Response) {
+            // 对 Request 的 result 字段进行解码
             decode(((Response) message).getResult());
         }
 

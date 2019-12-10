@@ -38,6 +38,7 @@ public class AllChannelHandler extends WrappedChannelHandler {
 
     @Override
     public void connected(Channel channel) throws RemotingException {
+        //连接事件交给线程池处理
         ExecutorService cexecutor = getExecutorService();
         try {
             cexecutor.execute(new ChannelEventRunnable(channel, handler, ChannelState.CONNECTED));
@@ -48,6 +49,7 @@ public class AllChannelHandler extends WrappedChannelHandler {
 
     @Override
     public void disconnected(Channel channel) throws RemotingException {
+        //断开事件交给线程池处理
         ExecutorService cexecutor = getExecutorService();
         try {
             cexecutor.execute(new ChannelEventRunnable(channel, handler, ChannelState.DISCONNECTED));
@@ -60,10 +62,11 @@ public class AllChannelHandler extends WrappedChannelHandler {
     public void received(Channel channel, Object message) throws RemotingException {
         ExecutorService cexecutor = getExecutorService();
         try {
+            //使用线程池提交任务
             cexecutor.execute(new ChannelEventRunnable(channel, handler, ChannelState.RECEIVED, message));
         } catch (Throwable t) {
-            //TODO A temporary solution to the problem that the exception information can not be sent to the opposite end after the thread pool is full. Need a refactoring
-            //fix The thread pool is full, refuses to call, does not return, and causes the consumer to wait for time out
+            // 如果通信方式为双向通信，此时将 Server side ... threadpool is exhausted
+            // 错误信息封装到 Response 中，并返回给服务消费方。
         	if(message instanceof Request && t instanceof RejectedExecutionException){
         		Request request = (Request)message;
         		if(request.isTwoWay()){
@@ -81,6 +84,7 @@ public class AllChannelHandler extends WrappedChannelHandler {
 
     @Override
     public void caught(Channel channel, Throwable exception) throws RemotingException {
+        //异常时间交给线程池处理
         ExecutorService cexecutor = getExecutorService();
         try {
             cexecutor.execute(new ChannelEventRunnable(channel, handler, ChannelState.CAUGHT, exception));

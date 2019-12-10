@@ -35,11 +35,17 @@ import java.util.concurrent.Executors;
 public class WrappedChannelHandler implements ChannelHandlerDelegate {
 
     protected static final Logger logger = LoggerFactory.getLogger(WrappedChannelHandler.class);
-
+    /**
+     * 共享线程池，当executor未初始化时使用该线程池
+     */
     protected static final ExecutorService SHARED_EXECUTOR = Executors.newCachedThreadPool(new NamedThreadFactory("DubboSharedHandler", true));
-
+    /**
+     * 执行各类型事件的线程池
+     */
     protected final ExecutorService executor;
-
+    /**
+     * ChannelHandler
+     */
     protected final ChannelHandler handler;
 
     protected final URL url;

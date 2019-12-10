@@ -61,7 +61,9 @@ public class HeartbeatHandler extends AbstractChannelHandlerDelegate {
 
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
+        //添加WRITE_TIMESTAMP时间戳属性
         setReadTimestamp(channel);
+        //是否为心跳消息
         if (isHeartbeatRequest(message)) {
             Request req = (Request) message;
             if (req.isTwoWay()) {
